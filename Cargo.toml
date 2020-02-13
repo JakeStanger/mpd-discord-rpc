@@ -1,0 +1,16 @@
+[package]
+name = "mpd-discord-rpc"
+version = "0.1.0"
+authors = ["Jake Stanger <mail@jstanger.dev>"]
+edition = "2018"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+discord-rpc-client = "0.3.0"
+mpd = "0.0.12"
+dirs = "2.0.2"
+toml = "0.5.6"
+
+[replace]
+"discord-rpc-client:0.3.0" = { git = "https://github.com/JakeStanger/discord-rpc-client.rs" }
