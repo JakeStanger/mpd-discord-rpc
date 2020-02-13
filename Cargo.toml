@@ -3,6 +3,8 @@ name = "mpd-discord-rpc"
 version = "1.0.0"
 authors = ["Jake Stanger <mail@jstanger.dev>"]
 edition = "2018"
+description = "Displays your currently playing song / album / artist from MPD in Discord using Rich Presence."
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
