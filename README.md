@@ -10,3 +10,5 @@ Should smoothly handle situations where a connection to MPD or Discord cannot be
 will retry until connections are made.
 
 If nothing is playing, nothing is displayed.
+
+Install with `cargo install mpd-discord-rpc`.
