@@ -18,6 +18,7 @@ const ACTIVE_TIME: u64 = 1;
 
 static EMPTY: String = String::new();
 
+/// Creates the config directory and default configuration file
 fn create_config(path: &PathBuf, filename: &str) -> std::io::Result<()> {
     println!("creating directory at '{:?}'", path);
     fs::create_dir_all(path)?;
@@ -28,6 +29,8 @@ fn create_config(path: &PathBuf, filename: &str) -> std::io::Result<()> {
     Ok(())
 }
 
+/// loads the configuration file contents.
+/// If the file does not exist it is created.
 fn load_config() -> std::io::Result<(String)> {
     let path = config_dir().unwrap().join(Path::new("discord-rpc"));
     let filename = "config.toml";
@@ -44,6 +47,9 @@ fn load_config() -> std::io::Result<(String)> {
     Ok(contents)
 }
 
+/// Cycles through each MPD host and
+/// returns the first one which is playing,
+/// or none if one is not found.
 fn try_get_mpd_conn(hosts: &Vec<String>) -> Option<MPDClient> {
     for host in hosts {
         let conn_wrapper = MPDClient::connect(host);
@@ -59,6 +65,8 @@ fn try_get_mpd_conn(hosts: &Vec<String>) -> Option<MPDClient> {
     None
 }
 
+/// Attempts to find a playing MPD host every 5
+/// seconds until one is found
 fn idle(hosts: &Vec<String>) -> MPDClient {
     println!("Entering idle mode");
 
@@ -104,7 +112,6 @@ fn main() {
                 println!("Failed to set activity: {}", why);
             };
         } else {
-//            rpc.clear_presence().unwrap();
             if let Err(why) = drpc.clear_activity() {
                 println!("Failed to clear activity: {}", why);
             };
