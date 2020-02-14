@@ -1,8 +1,3 @@
-extern crate dirs;
-extern crate discord_rpc_client;
-extern crate mpd;
-extern crate toml;
-
 use std::{thread, time};
 use std::fs;
 use std::io::{BufReader, Read, Write};
@@ -31,7 +26,7 @@ fn create_config(path: &PathBuf, filename: &str) -> std::io::Result<()> {
 
 /// loads the configuration file contents.
 /// If the file does not exist it is created.
-fn load_config() -> std::io::Result<(String)> {
+fn load_config() -> std::io::Result<String> {
     let path = config_dir().unwrap().join(Path::new("discord-rpc"));
     let filename = "config.toml";
 
@@ -50,11 +45,9 @@ fn load_config() -> std::io::Result<(String)> {
 /// Cycles through each MPD host and
 /// returns the first one which is playing,
 /// or none if one is not found.
-fn try_get_mpd_conn(hosts: &Vec<String>) -> Option<MPDClient> {
+fn try_get_mpd_conn(hosts: &[String]) -> Option<MPDClient> {
     for host in hosts {
-        let conn_wrapper = MPDClient::connect(host);
-        if conn_wrapper.is_ok() {
-            let mut conn = conn_wrapper.unwrap();
+        if let Ok(mut conn) = MPDClient::connect(host) {
             let state = conn.status().unwrap().state;
             if state == State::Play {
                 return Some(conn);
@@ -67,7 +60,7 @@ fn try_get_mpd_conn(hosts: &Vec<String>) -> Option<MPDClient> {
 
 /// Attempts to find a playing MPD host every 5
 /// seconds until one is found
-fn idle(hosts: &Vec<String>) -> MPDClient {
+fn idle(hosts: &[String]) -> MPDClient {
     println!("Entering idle mode");
 
     loop {
@@ -86,7 +79,7 @@ fn main() {
     let config = load_config().unwrap().parse::<Value>().unwrap();
 
     let app_id = config["id"].as_integer().unwrap() as u64;
-    let hosts = &config["hosts"].as_array().unwrap().iter()
+    let hosts: &Vec<String> = &config["hosts"].as_array().unwrap().iter()
         .map(|val| val.as_str().unwrap().to_string())
         .collect();
 
