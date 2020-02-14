@@ -1,7 +1,7 @@
 use std::{thread, time};
 use std::fs;
 use std::io::{BufReader, Read, Write};
-use std::path::{Path, PathBuf};
+use std::path::{Path};
 
 use dirs::config_dir;
 use discord_rpc_client::Client as DiscordClient;
@@ -14,7 +14,7 @@ const ACTIVE_TIME: u64 = 1;
 static EMPTY: String = String::new();
 
 /// Creates the config directory and default configuration file
-fn create_config(path: &PathBuf, filename: &str) -> std::io::Result<()> {
+fn create_config(path: &Path, filename: &str) -> std::io::Result<()> {
     println!("creating directory at '{:?}'", path);
     fs::create_dir_all(path)?;
 
