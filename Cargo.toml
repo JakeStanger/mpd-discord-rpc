@@ -7,6 +7,7 @@ description = "Displays your currently playing song / album / artist from MPD in
 license = "MIT"
 repository = "https://github.com/JakeStanger/mpd-discord-rpc"
 readme = "README.md"
+keywords = ["mpd", "discord", "rpc", "music"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
