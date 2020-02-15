@@ -1,14 +1,34 @@
 # MPD Discord RPC
 
-Displays your currently playing song / album / artist from MPD in Discord using Rich Presence.
+Displays your currently playing song / album / artist from MPD in Discord using Rich Presence. It includes support for multiple MPD hosts if, like me, you have more than one server you alternate between.
 
-Includes support for multiple MPD hosts if, like me, you have more than one server you alternate between.
-These can be configured from `.config/discord-rpc/config.toml`. 
-The appliation ID can also be edited from here.
+The program does not require MPD or Discord to be running in order to run.
 
-Should smoothly handle situations where a connection to MPD or Discord cannot be established, and
-will retry until connections are made.
+## Installation
 
-If nothing is playing, nothing is displayed.
+### Cargo
 
-Install with `cargo install mpd-discord-rpc`.
+The cargo package can be found [here](https://crates.io/crates/mpd-discord-rpc).
+
+```
+cargo install mpd-discord-rpc
+```
+
+### Arch Linux
+
+The AUR package can be found [here](https://aur.archlinux.org/packages/mpd-discord-rpc).
+
+```
+yay -S mpd-discord-rpc
+```
+
+### NixOS
+
+I have a derivation on the way. The `[replace]` tag is causing some issues right now.
+
+## Configuration
+
+Running the program once will generate a default configuration file. On Linux this will be at `~/.config/discord-rpc/config.toml`
+
+- **id** - The Discord application ID to run through. 
+- **hosts** - An array of MPD server host socket addresses. Each one will be tried in order until a playing server isfound.
