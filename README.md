@@ -4,6 +4,8 @@ Displays your currently playing song / album / artist from MPD in Discord using 
 
 The program does not require MPD or Discord to be running in order to run.
 
+Once installed just run `mpd-discord-rpc`.
+
 ## Installation
 
 ### Cargo
