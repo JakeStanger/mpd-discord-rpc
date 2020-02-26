@@ -6,6 +6,8 @@ The program does not require MPD or Discord to be running in order to run.
 
 Once installed just run `mpd-discord-rpc`.
 
+![status](https://f.jstanger.dev/github/mpd-discord-rpc/status.png)
+
 ## Installation
 
 ### Cargo
