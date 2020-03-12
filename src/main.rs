@@ -29,11 +29,11 @@ fn create_config(path: &Path, filename: &str) -> std::io::Result<()> {
     config.write_all(
         format!(
             "id = {}
-    hosts = ['{}']
+hosts = ['{}']
 
-    [format]
-    details = \"{}\"
-    state = \"{}\"
+[format]
+details = \"{}\"
+state = \"{}\"
     ",
             DISCORD_ID, DEFAULT_HOST, DETAILS_FORMAT, STATE_FORMAT
         )
@@ -130,16 +130,16 @@ fn main() {
 
     let details_format = match &format_options {
         Some(options) => options.as_table().unwrap()["details"]
-                .as_str()
-                .unwrap_or(DETAILS_FORMAT),
-        None => DETAILS_FORMAT
+            .as_str()
+            .unwrap_or(DETAILS_FORMAT),
+        None => DETAILS_FORMAT,
     };
 
     let state_format = match &format_options {
         Some(options) => options.as_table().unwrap()["state"]
-                .as_str()
-                .unwrap_or(STATE_FORMAT),
-        None => STATE_FORMAT
+            .as_str()
+            .unwrap_or(STATE_FORMAT),
+        None => STATE_FORMAT,
     };
 
     let mut mpd = idle(hosts);
