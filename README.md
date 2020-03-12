@@ -56,6 +56,7 @@ The following will automatically be replaced with their value from MPD:
 - `$disc`
 - `$genre`
 - `$duration`
+- `$elapsed`
 
 ### Default Configuration
 

@@ -93,21 +93,14 @@ fn idle(hosts: &[String]) -> MPDClient {
     }
 }
 
-fn format_duration(duration: Option<&String>) -> Option<String> {
-    if duration.is_some() {
-        let time = duration.unwrap().parse::<f32>().unwrap();
+fn format_time(time: i64) -> String {
+    let seconds = (time as f64 % 60.0).round();
+    let minutes = ((time as f64 % 3600.0) / 60.0).round();
 
-        let seconds = (time % 60.0).round();
-        let minutes = ((time % 3600.0) / 60.0).round();
-
-        let formatted = format!("{:0>2}:{:0>2}", minutes, seconds);
-        return Some(formatted);
-    }
-
-    None
+    format!("{:0>2}:{:0>2}", minutes, seconds)
 }
 
-fn get_token_value(song: &Song, token: &str) -> String {
+fn get_token_value(client: &mut MPDClient, song: &Song, token: &str) -> String {
     match token {
         "title" => song.title.as_ref().unwrap_or(&EMPTY).clone(),
         "album" => song.tags.get("Album").unwrap_or(&EMPTY).clone(),
@@ -116,7 +109,8 @@ fn get_token_value(song: &Song, token: &str) -> String {
         "disc" => song.tags.get("Disc").unwrap_or(&EMPTY).clone(),
         "genre" => song.tags.get("Genre").unwrap_or(&EMPTY).clone(),
         "track" => song.tags.get("Track").unwrap_or(&EMPTY).clone(),
-        "duration" => format_duration(song.tags.get("duration")).unwrap_or(String::new()),
+        "duration" => format_time(client.status().unwrap().duration.unwrap().num_seconds()),
+        "elapsed" => format_time(client.status().unwrap().elapsed.unwrap().num_seconds()),
         _ => token.to_string(),
     }
 }
@@ -162,10 +156,10 @@ fn main() {
             let song: Song = mpd.currentsong().unwrap().unwrap();
 
             let details = re.replace_all(details_format, |caps: &Captures| {
-                get_token_value(&song, &caps[1])
+                get_token_value(&mut mpd, &song, &caps[1])
             });
             let state = re.replace_all(state_format, |caps: &Captures| {
-                get_token_value(&song, &caps[1])
+                get_token_value(&mut mpd, &song, &caps[1])
             });
 
             // set the activity
