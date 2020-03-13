@@ -12,10 +12,10 @@ use toml::Value;
 const IDLE_TIME: u64 = 5;
 const ACTIVE_TIME: u64 = 1;
 
-static DISCORD_ID: &str = "677226551607033903";
-static DEFAULT_HOST: &str = "localhost:6600";
-static DETAILS_FORMAT: &str = "$title";
-static STATE_FORMAT: &str = "$artist / $album";
+const DISCORD_ID: &str = "677226551607033903";
+const DEFAULT_HOST: &str = "localhost:6600";
+const DETAILS_FORMAT: &str = "$title";
+const STATE_FORMAT: &str = "$artist / $album";
 
 /// Creates the config directory and default configuration file
 fn create_config(path: &Path, filename: &str) -> std::io::Result<()> {
