@@ -12,8 +12,6 @@ use toml::Value;
 const IDLE_TIME: u64 = 5;
 const ACTIVE_TIME: u64 = 1;
 
-static EMPTY: String = String::new();
-
 static DISCORD_ID: &str = "677226551607033903";
 static DEFAULT_HOST: &str = "localhost:6600";
 static DETAILS_FORMAT: &str = "$title";
@@ -101,18 +99,19 @@ fn format_time(time: i64) -> String {
 }
 
 fn get_token_value(client: &mut MPDClient, song: &Song, token: &str) -> String {
-    match token {
-        "title" => song.title.as_ref().unwrap_or(&EMPTY).clone(),
-        "album" => song.tags.get("Album").unwrap_or(&EMPTY).clone(),
-        "artist" => song.tags.get("Artist").unwrap_or(&EMPTY).clone(),
-        "date" => song.tags.get("Date").unwrap_or(&EMPTY).clone(),
-        "disc" => song.tags.get("Disc").unwrap_or(&EMPTY).clone(),
-        "genre" => song.tags.get("Genre").unwrap_or(&EMPTY).clone(),
-        "track" => song.tags.get("Track").unwrap_or(&EMPTY).clone(),
-        "duration" => format_time(client.status().unwrap().duration.unwrap().num_seconds()),
-        "elapsed" => format_time(client.status().unwrap().elapsed.unwrap().num_seconds()),
-        _ => token.to_string(),
-    }
+    let s = match token {
+        "title" => song.title.as_ref(),
+        "album" => song.tags.get("Album"),
+        "artist" => song.tags.get("Artist"),
+        "date" => song.tags.get("Date"),
+        "disc" => song.tags.get("Disc"),
+        "genre" => song.tags.get("Genre"),
+        "track" => song.tags.get("Track"),
+        "duration" => return format_time(client.status().unwrap().duration.unwrap().num_seconds()),
+        "elapsed" => return format_time(client.status().unwrap().elapsed.unwrap().num_seconds()),
+        _ => return token.to_string(),
+    };
+    s.cloned().unwrap_or_default()
 }
 
 fn main() {
