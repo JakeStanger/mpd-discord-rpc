@@ -118,30 +118,30 @@ fn main() {
     let config = load_config().unwrap().parse::<Value>().unwrap();
 
     let app_id = config["id"].as_integer().unwrap() as u64;
-    let hosts: &Vec<String> = &config["hosts"]
+    let hosts: Vec<String> = config["hosts"]
         .as_array()
         .unwrap()
         .iter()
         .map(|val| val.as_str().unwrap().to_string())
         .collect();
 
-    let format_options = &config.get("format");
+    let format_options = config.get("format");
 
-    let details_format = match &format_options {
+    let details_format = match format_options {
         Some(options) => options.as_table().unwrap()["details"]
             .as_str()
             .unwrap_or(DETAILS_FORMAT),
         None => DETAILS_FORMAT,
     };
 
-    let state_format = match &format_options {
+    let state_format = match format_options {
         Some(options) => options.as_table().unwrap()["state"]
             .as_str()
             .unwrap_or(STATE_FORMAT),
         None => STATE_FORMAT,
     };
 
-    let mut mpd = idle(hosts);
+    let mut mpd = idle(&hosts);
     let mut drpc = DiscordClient::new(app_id);
 
     drpc.start();
