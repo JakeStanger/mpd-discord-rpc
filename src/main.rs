@@ -12,12 +12,10 @@ use toml::Value;
 const IDLE_TIME: u64 = 5;
 const ACTIVE_TIME: u64 = 1;
 
-static EMPTY: String = String::new();
-
-static DISCORD_ID: &str = "677226551607033903";
-static DEFAULT_HOST: &str = "localhost:6600";
-static DETAILS_FORMAT: &str = "$title";
-static STATE_FORMAT: &str = "$artist / $album";
+const DISCORD_ID: &str = "677226551607033903";
+const DEFAULT_HOST: &str = "localhost:6600";
+const DETAILS_FORMAT: &str = "$title";
+const STATE_FORMAT: &str = "$artist / $album";
 
 /// Creates the config directory and default configuration file
 fn create_config(path: &Path, filename: &str) -> std::io::Result<()> {
@@ -101,48 +99,49 @@ fn format_time(time: i64) -> String {
 }
 
 fn get_token_value(client: &mut MPDClient, song: &Song, token: &str) -> String {
-    match token {
-        "title" => song.title.as_ref().unwrap_or(&EMPTY).clone(),
-        "album" => song.tags.get("Album").unwrap_or(&EMPTY).clone(),
-        "artist" => song.tags.get("Artist").unwrap_or(&EMPTY).clone(),
-        "date" => song.tags.get("Date").unwrap_or(&EMPTY).clone(),
-        "disc" => song.tags.get("Disc").unwrap_or(&EMPTY).clone(),
-        "genre" => song.tags.get("Genre").unwrap_or(&EMPTY).clone(),
-        "track" => song.tags.get("Track").unwrap_or(&EMPTY).clone(),
-        "duration" => format_time(client.status().unwrap().duration.unwrap().num_seconds()),
-        "elapsed" => format_time(client.status().unwrap().elapsed.unwrap().num_seconds()),
-        _ => token.to_string(),
-    }
+    let s = match token {
+        "title" => song.title.as_ref(),
+        "album" => song.tags.get("Album"),
+        "artist" => song.tags.get("Artist"),
+        "date" => song.tags.get("Date"),
+        "disc" => song.tags.get("Disc"),
+        "genre" => song.tags.get("Genre"),
+        "track" => song.tags.get("Track"),
+        "duration" => return format_time(client.status().unwrap().duration.unwrap().num_seconds()),
+        "elapsed" => return format_time(client.status().unwrap().elapsed.unwrap().num_seconds()),
+        _ => return token.to_string(),
+    };
+    s.cloned().unwrap_or_default()
 }
 
 fn main() {
     let config = load_config().unwrap().parse::<Value>().unwrap();
 
     let app_id = config["id"].as_integer().unwrap() as u64;
-    let hosts: &Vec<String> = &config["hosts"]
+    let hosts: Vec<String> = config["hosts"]
         .as_array()
         .unwrap()
         .iter()
         .map(|val| val.as_str().unwrap().to_string())
         .collect();
 
-    let format_options = &config.get("format");
+    let format_options = config.get("format");
 
-    let details_format = match &format_options {
+    let details_format = match format_options {
         Some(options) => options.as_table().unwrap()["details"]
             .as_str()
             .unwrap_or(DETAILS_FORMAT),
         None => DETAILS_FORMAT,
     };
 
-    let state_format = match &format_options {
+    let state_format = match format_options {
         Some(options) => options.as_table().unwrap()["state"]
             .as_str()
             .unwrap_or(STATE_FORMAT),
         None => STATE_FORMAT,
     };
 
-    let mut mpd = idle(hosts);
+    let mut mpd = idle(&hosts);
     let mut drpc = DiscordClient::new(app_id);
 
     drpc.start();
