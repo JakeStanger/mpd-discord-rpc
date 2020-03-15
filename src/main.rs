@@ -7,15 +7,28 @@ use dirs::config_dir;
 use discord_rpc_client::Client as DiscordClient;
 use mpd::{Client as MPDClient, Song, State};
 use regex::{Captures, Regex};
-use toml::Value;
+use serde::{Serialize, Deserialize};
 
 const IDLE_TIME: u64 = 5;
 const ACTIVE_TIME: u64 = 1;
 
-const DISCORD_ID: &str = "677226551607033903";
+const DISCORD_ID: u64 = 677226551607033903;
 const DEFAULT_HOST: &str = "localhost:6600";
 const DETAILS_FORMAT: &str = "$title";
 const STATE_FORMAT: &str = "$artist / $album";
+
+#[derive(Serialize, Deserialize)]
+struct Format<'a> {
+    details: &'a str,
+    state: &'a str
+}
+
+#[derive(Serialize, Deserialize)]
+struct Config<'a> {
+    id: u64,
+    hosts: &'a Vec<String>,
+    format: Option<Format<'a>>
+}
 
 /// Creates the config directory and default configuration file
 fn create_config(path: &Path, filename: &str) -> std::io::Result<()> {
@@ -23,20 +36,18 @@ fn create_config(path: &Path, filename: &str) -> std::io::Result<()> {
     fs::create_dir_all(path)?;
 
     println!("creating default config file");
-    let mut config = fs::File::create(path.join(filename))?;
-    config.write_all(
-        format!(
-            "id = {}
-hosts = ['{}']
+    let mut config_file = fs::File::create(path.join(filename))?;
 
-[format]
-details = \"{}\"
-state = \"{}\"
-    ",
-            DISCORD_ID, DEFAULT_HOST, DETAILS_FORMAT, STATE_FORMAT
-        )
-        .as_bytes(),
-    )?;
+    let config = Config {
+        id: DISCORD_ID,
+        hosts: &[DEFAULT_HOST.to_string()].to_vec(),
+        format: Some(Format {
+            details: DETAILS_FORMAT,
+            state: STATE_FORMAT
+        })
+    };
+
+    config_file.write_all(toml::to_string(&config).unwrap().as_bytes())?;
     Ok(())
 }
 
@@ -115,34 +126,24 @@ fn get_token_value(client: &mut MPDClient, song: &Song, token: &str) -> String {
 }
 
 fn main() {
-    let config = load_config().unwrap().parse::<Value>().unwrap();
+    let config = load_config().unwrap().parse::<Config>().unwrap();
 
-    let app_id = config["id"].as_integer().unwrap() as u64;
-    let hosts: Vec<String> = config["hosts"]
-        .as_array()
-        .unwrap()
-        .iter()
-        .map(|val| val.as_str().unwrap().to_string())
-        .collect();
+    let hosts = config.hosts.iter().map(|h| h.to_string()).collect();
 
-    let format_options = config.get("format");
+    let format_options = &config.format;
 
     let details_format = match format_options {
-        Some(options) => options.as_table().unwrap()["details"]
-            .as_str()
-            .unwrap_or(DETAILS_FORMAT),
+        Some(options) => options.details,
         None => DETAILS_FORMAT,
     };
 
     let state_format = match format_options {
-        Some(options) => options.as_table().unwrap()["state"]
-            .as_str()
-            .unwrap_or(STATE_FORMAT),
+        Some(options) => options.state,
         None => STATE_FORMAT,
     };
 
-    let mut mpd = idle(&hosts);
-    let mut drpc = DiscordClient::new(app_id);
+    let mut mpd = idle(hosts);
+    let mut drpc = DiscordClient::new(config.id);
 
     drpc.start();
 
@@ -174,7 +175,7 @@ fn main() {
                 println!("Failed to clear activity: {}", why);
             };
 
-            mpd = idle(&hosts);
+            mpd = idle(hosts);
         }
 
         // sleep for 1 sec to not hammer the mpd and rpc servers
