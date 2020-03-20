@@ -267,7 +267,7 @@ dependencies = [
 
 [[package]]
 name = "mpd-discord-rpc"
-version = "1.1.0"
+version = "1.1.1"
 dependencies = [
  "dirs",
  "discord-rpc-client 0.3.0 (registry+https://github.com/rust-lang/crates.io-index)",
