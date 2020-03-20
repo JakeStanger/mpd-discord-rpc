@@ -47,8 +47,7 @@ fn create_config(path: &Path, filename: &str) -> std::io::Result<()> {
         }),
     };
 
-    config_file.write_all(toml::to_string(&config).unwrap().as_bytes())?;
-    Ok(())
+    config_file.write_all(toml::to_string(&config).unwrap().as_bytes())
 }
 
 /// loads the configuration file contents.
