@@ -65,7 +65,7 @@ It is included here for reference.
 
 ```toml
 id = 677226551607033903
-hosts = ['localhost:6600']
+hosts = ["localhost:6600"]
 
 [format]
 details = "$title"
