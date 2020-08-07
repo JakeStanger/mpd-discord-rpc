@@ -17,12 +17,11 @@ pub(crate) fn try_get_mpd_conn(hosts: &[String]) -> Option<MPDClient> {
 }
 
 /// Formats a duration given in seconds
-/// into hh:mm
 fn format_time(time: i64) -> String {
-    let seconds = (time as f64 % 60.0).round();
-    let minutes = ((time as f64 % 3600.0) / 60.0).round();
+    let minutes = (time / 60) % 60;
+    let seconds = time % 60;
 
-    format!("{:0>2}:{:0>2}", minutes, seconds)
+    format!("{}:{}", minutes, seconds)
 }
 
 /// Converts a string format token value
