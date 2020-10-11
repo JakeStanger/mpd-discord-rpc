@@ -1,7 +1,7 @@
 # MPD Discord RPC
 
 ![crates.io](https://img.shields.io/crates/v/mpd-discord-rpc)
-![aur](https://img.shields.io/aur/version/mpd-discord-rpc)
+![aur](https://img.shields.io/aur/version/mpd-discord-rpc=git)
 
 Displays your currently playing song / album / artist from MPD in Discord using Rich Presence. It includes support for multiple MPD hosts if, like me, you have more than one server you alternate between.
 
@@ -23,10 +23,10 @@ cargo install mpd-discord-rpc
 
 ### Arch Linux
 
-The AUR package can be found [here](https://aur.archlinux.org/packages/mpd-discord-rpc).
+The AUR package can be found [here](https://aur.archlinux.org/packages/mpd-discord-rpc-git).
 
 ```
-yay -S mpd-discord-rpc
+yay -S mpd-discord-rpc-git
 ```
 
 ### NixOS
