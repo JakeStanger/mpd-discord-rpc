@@ -8,6 +8,8 @@ use discord_rpc_client::Client as DiscordClient;
 use mpd::{Client as MPDClient, Song, State};
 use regex::{Captures, Regex};
 use std::{thread, time};
+use crate::mpd_conn::get_timestamp;
+use crate::defaults::TIMESTAMP_MODE;
 
 /// Attempts to find a playing MPD host every 5
 /// seconds until one is found
@@ -46,6 +48,14 @@ fn main() {
         None => STATE_FORMAT,
     };
 
+    let timestamp_mode = match format_options.as_ref() {
+        Some(options) => match options.timestamp.as_ref() {
+            Some(t) => t.as_str(),
+            None => TIMESTAMP_MODE
+        },
+        None => TIMESTAMP_MODE
+    };
+
     // MPD and Discord connections
     let mut mpd = idle(hosts);
     let mut drpc = DiscordClient::new(config.id);
@@ -62,6 +72,7 @@ fn main() {
             let details = re.replace_all(details_format, |caps: &Captures| {
                 mpd_conn::get_token_value(&mut mpd, &song, &caps[1])
             });
+
             let state = re.replace_all(state_format, |caps: &Captures| {
                 mpd_conn::get_token_value(&mut mpd, &song, &caps[1])
             });
@@ -71,6 +82,7 @@ fn main() {
                 act.state(state)
                     .details(details)
                     .assets(|asset| asset.small_image("notes"))
+                    .timestamps(|timestamps| get_timestamp(&mut mpd, timestamps, timestamp_mode))
             }) {
                 println!("Failed to set activity: {}", why);
             };

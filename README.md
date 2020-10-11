@@ -38,10 +38,16 @@ I have a derivation on the way. The `[replace]` tag is causing some issues right
 Running the program once will generate a default configuration file. On Linux this will be at `~/.config/discord-rpc/config.toml`
 
 - **id** - The Discord application ID to run through. 
-- **hosts** - An array of MPD server host socket addresses. Each one will be tried in order until a playing server is found.
+- **hosts** - An array of MPD server host socket addresses. 
+    Each one will be tried in order until a playing server is found.
 - **format** - Format strings. Tokens are listed below.
-    - **details** - A format string for the top line. This is the song title by default.
-    - **state** - A format string for the second line. This is the artist / album by default.
+    - **details** - A format string for the top line. 
+        This is the song title by default.
+    - **state** - A format string for the second line. 
+        This is the artist / album by default.
+    - **timestamp** - The timestamp mode for the third line. 
+        This is 'elapsed' by default.
+        Can be one of `elapsed`, `left` or `off`. Falls back to `elapsed`.
 
 ### Formatting Tokens
 
@@ -70,4 +76,5 @@ hosts = ["localhost:6600"]
 [format]
 details = "$title"
 state = "$artist / $album"
+timestamp = "elapsed"
 ```

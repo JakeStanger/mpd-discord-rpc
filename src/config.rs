@@ -1,4 +1,4 @@
-use crate::defaults::{DEFAULT_HOST, DETAILS_FORMAT, DISCORD_ID, STATE_FORMAT};
+use crate::defaults::{DEFAULT_HOST, DETAILS_FORMAT, DISCORD_ID, STATE_FORMAT, TIMESTAMP_MODE};
 use dirs::config_dir;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -9,6 +9,8 @@ use std::path::Path;
 pub struct Format {
     pub(crate) details: String,
     pub(crate) state: String,
+     // 'elapsed', 'left', or 'off'. optional as new feat
+    pub(crate) timestamp: Option<String>
 }
 
 #[derive(Serialize, Deserialize)]
@@ -33,6 +35,7 @@ impl Config {
             format: Some(Format {
                 details: DETAILS_FORMAT.to_string(),
                 state: STATE_FORMAT.to_string(),
+                timestamp: Some(TIMESTAMP_MODE.to_string())
             }),
         };
 
