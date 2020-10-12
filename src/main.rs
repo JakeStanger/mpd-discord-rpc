@@ -78,11 +78,11 @@ fn main() {
                     .assets(|asset| asset.small_image("notes"))
                     .timestamps(|timestamps| get_timestamp(&mut mpd, timestamps, timestamp_mode))
             }) {
-                println!("Failed to set activity: {}", why);
+                eprintln!("Failed to set activity: {}", why);
             };
         } else {
             if let Err(why) = drpc.clear_activity() {
-                println!("Failed to clear activity: {}", why);
+                eprintln!("Failed to clear activity: {}", why);
             };
 
             mpd = idle(hosts);
