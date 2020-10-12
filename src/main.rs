@@ -2,14 +2,14 @@ mod config;
 mod defaults;
 mod mpd_conn;
 
+use crate::defaults::TIMESTAMP_MODE;
+use crate::mpd_conn::get_timestamp;
 use config::Config;
 use defaults::{ACTIVE_TIME, DETAILS_FORMAT, IDLE_TIME, STATE_FORMAT};
 use discord_rpc_client::Client as DiscordClient;
 use mpd::{Client as MPDClient, Song, State};
 use regex::{Captures, Regex};
 use std::{thread, time};
-use crate::mpd_conn::get_timestamp;
-use crate::defaults::TIMESTAMP_MODE;
 
 /// Attempts to find a playing MPD host every 5
 /// seconds until one is found

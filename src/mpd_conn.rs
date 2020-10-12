@@ -1,7 +1,6 @@
+use discord_rpc_client::models::ActivityTimestamps;
 use mpd::{Client as MPDClient, Song, State};
 use std::time::{SystemTime, UNIX_EPOCH};
-use discord_rpc_client::models::ActivityTimestamps;
-
 
 /// Cycles through each MPD host and
 /// returns the first one which is playing,
@@ -46,16 +45,24 @@ pub(crate) fn get_token_value(client: &mut MPDClient, song: &Song, token: &str) 
     s.cloned().unwrap_or_default()
 }
 
-pub(crate) fn get_timestamp(client: &mut MPDClient, timestamps: ActivityTimestamps, mode: &str) -> ActivityTimestamps {
-    let current_time = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
+pub(crate) fn get_timestamp(
+    client: &mut MPDClient,
+    timestamps: ActivityTimestamps,
+    mode: &str,
+) -> ActivityTimestamps {
+    let current_time = SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .unwrap()
+        .as_secs();
     let status = client.status().unwrap();
 
     match mode {
         "left" => {
-            let remaining = status.duration.unwrap().num_seconds() - status.elapsed.unwrap().num_seconds();
-        timestamps.end(current_time + remaining as u64)
-        },
+            let remaining =
+                status.duration.unwrap().num_seconds() - status.elapsed.unwrap().num_seconds();
+            timestamps.end(current_time + remaining as u64)
+        }
         "off" => timestamps,
-        _ =>  timestamps.start(current_time - status.elapsed.unwrap().num_seconds() as u64)
+        _ => timestamps.start(current_time - status.elapsed.unwrap().num_seconds() as u64),
     }
 }
