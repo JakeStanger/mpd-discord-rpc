@@ -19,9 +19,9 @@ fn idle(hosts: &[String]) -> MPDClient {
     loop {
         let conn_wrapper = mpd_conn::try_get_mpd_conn(hosts);
 
-        if conn_wrapper.is_some() {
+        if let Some(client) = conn_wrapper {
             println!("Exiting idle mode");
-            return conn_wrapper.unwrap();
+            return client;
         }
 
         thread::sleep(time::Duration::from_secs(IDLE_TIME));
