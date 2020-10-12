@@ -38,22 +38,16 @@ fn main() {
 
     let format_options = config.format;
 
-    let details_format = match format_options.as_ref() {
-        Some(options) => options.details.as_str(),
-        None => DETAILS_FORMAT,
-    };
-
-    let state_format = match format_options.as_ref() {
-        Some(options) => options.state.as_str(),
-        None => STATE_FORMAT,
-    };
-
-    let timestamp_mode = match format_options.as_ref() {
-        Some(options) => match options.timestamp.as_ref() {
-            Some(t) => t.as_str(),
-            None => TIMESTAMP_MODE
-        },
-        None => TIMESTAMP_MODE
+    let (details_format, state_format, timestamp_mode) = match format_options.as_ref() {
+        Some(opt) => (
+            opt.details.as_str(),
+            opt.state.as_str(),
+            opt.timestamp
+                .as_ref()
+                .map(String::as_str)
+                .unwrap_or(TIMESTAMP_MODE),
+        ),
+        None => (DETAILS_FORMAT, STATE_FORMAT, TIMESTAMP_MODE),
     };
 
     // MPD and Discord connections
