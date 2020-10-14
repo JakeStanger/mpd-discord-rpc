@@ -2,6 +2,8 @@ mod config;
 mod defaults;
 mod mpd_conn;
 
+use crate::defaults::TIMESTAMP_MODE;
+use crate::mpd_conn::get_timestamp;
 use config::Config;
 use defaults::{ACTIVE_TIME, DETAILS_FORMAT, IDLE_TIME, STATE_FORMAT};
 use discord_rpc_client::Client as DiscordClient;
@@ -36,14 +38,16 @@ fn main() {
 
     let format_options = config.format;
 
-    let details_format = match format_options.as_ref() {
-        Some(options) => options.details.as_str(),
-        None => DETAILS_FORMAT,
-    };
-
-    let state_format = match format_options.as_ref() {
-        Some(options) => options.state.as_str(),
-        None => STATE_FORMAT,
+    let (details_format, state_format, timestamp_mode) = match format_options.as_ref() {
+        Some(opt) => (
+            opt.details.as_str(),
+            opt.state.as_str(),
+            opt.timestamp
+                .as_ref()
+                .map(String::as_str)
+                .unwrap_or(TIMESTAMP_MODE),
+        ),
+        None => (DETAILS_FORMAT, STATE_FORMAT, TIMESTAMP_MODE),
     };
 
     // MPD and Discord connections
@@ -62,6 +66,7 @@ fn main() {
             let details = re.replace_all(details_format, |caps: &Captures| {
                 mpd_conn::get_token_value(&mut mpd, &song, &caps[1])
             });
+
             let state = re.replace_all(state_format, |caps: &Captures| {
                 mpd_conn::get_token_value(&mut mpd, &song, &caps[1])
             });
@@ -71,6 +76,7 @@ fn main() {
                 act.state(state)
                     .details(details)
                     .assets(|asset| asset.small_image("notes"))
+                    .timestamps(|timestamps| get_timestamp(&mut mpd, timestamps, timestamp_mode))
             }) {
                 println!("Failed to set activity: {}", why);
             };
