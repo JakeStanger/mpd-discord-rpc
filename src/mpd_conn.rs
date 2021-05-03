@@ -8,11 +8,14 @@ use mpd::{Client as MPDClient, Song, State};
 /// or none if one is not found.
 pub(crate) fn try_get_mpd_conn(hosts: &[String]) -> Option<MPDClient> {
     for host in hosts {
-        if let Ok(mut conn) = MPDClient::connect(host) {
-            let state = conn.status().unwrap().state;
-            if state == State::Play {
-                return Some(conn);
+        match MPDClient::connect(host) {
+            Ok(mut conn) => {
+                let state = conn.status().unwrap().state;
+                if state == State::Play {
+                    return Some(conn);
+                }
             }
+            Err(why) => eprintln!("Error connecting to {}: {}", host, why),
         }
     }
 

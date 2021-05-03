@@ -19,9 +19,9 @@ fn idle(hosts: &[String]) -> MPDClient {
     loop {
         let conn_wrapper = mpd_conn::try_get_mpd_conn(hosts);
 
-        if conn_wrapper.is_some() {
+        if let Some(client) = conn_wrapper {
             println!("Exiting idle mode");
-            return conn_wrapper.unwrap();
+            return client;
         }
 
         thread::sleep(time::Duration::from_secs(IDLE_TIME));
@@ -78,11 +78,11 @@ fn main() {
                     .assets(|asset| asset.small_image("notes"))
                     .timestamps(|timestamps| get_timestamp(&mut mpd, timestamps, timestamp_mode))
             }) {
-                println!("Failed to set activity: {}", why);
+                eprintln!("Failed to set activity: {}", why);
             };
         } else {
             if let Err(why) = drpc.clear_activity() {
-                println!("Failed to clear activity: {}", why);
+                eprintln!("Failed to clear activity: {}", why);
             };
 
             mpd = idle(hosts);
