@@ -38,7 +38,7 @@ pub(crate) fn get_token_value(client: &mut MPDClient, song: &Song, token: &str) 
         "disc" => song.tags.get("Disc"),
         "genre" => song.tags.get("Genre"),
         "track" => song.tags.get("Track"),
-        "duration" => return format_time(client.status().unwrap().duration.unwrap().num_seconds()),
+        "duration" => return format_time(client.status().unwrap().time.unwrap().1.num_seconds()),
         "elapsed" => return format_time(client.status().unwrap().elapsed.unwrap().num_seconds()),
         _ => return token.to_string(),
     };
