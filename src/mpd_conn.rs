@@ -1,6 +1,7 @@
+use std::time::{SystemTime, UNIX_EPOCH};
+
 use discord_rpc_client::models::ActivityTimestamps;
 use mpd::{Client as MPDClient, Song, State};
-use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Cycles through each MPD host and
 /// returns the first one which is playing,
