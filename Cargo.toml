@@ -1,13 +1,13 @@
 [package]
 name = "mpd-discord-rpc"
-version = "1.2.1"
+version = "1.2.2"
 authors = ["Jake Stanger <mail@jstanger.dev>"]
 edition = "2018"
 description = "Displays your currently playing song / album / artist from MPD in Discord using Rich Presence."
 license = "MIT"
 repository = "https://github.com/JakeStanger/mpd-discord-rpc"
 readme = "README.md"
-keywords = ["mpd", "discord", "rpc", "music"]
+keywords = ["mpd", "discord", "rpc", "music", "mopidy"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
