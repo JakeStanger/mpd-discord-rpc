@@ -78,7 +78,7 @@ fn main() {
             if let Err(why) = drpc.set_activity(|act| {
                 act.state(state)
                     .details(details)
-                    .assets(|asset| asset.small_image("notes"))
+                    .assets(|asset| asset.small_image("notes").large_image("notes"))
                     .timestamps(|timestamps| get_timestamp(&mut mpd, timestamps, timestamp_mode))
             }) {
                 eprintln!("Failed to set activity: {}", why);
