@@ -5,7 +5,16 @@ use mpd::{Client as MPDClient, Song, State};
 use regex::{Captures, Regex};
 
 use config::Config;
-use defaults::{ACTIVE_TIME, DETAILS_FORMAT, IDLE_TIME, STATE_FORMAT};
+use defaults::{
+    ACTIVE_TIME,
+    DETAILS_FORMAT,
+    IDLE_TIME,
+    STATE_FORMAT,
+    LARGE_IMAGE,
+    SMALL_IMAGE,
+    LARGE_TEXT,
+    SMALL_TEXT,
+};
 
 use crate::defaults::TIMESTAMP_MODE;
 use crate::mpd_conn::get_timestamp;
@@ -41,7 +50,15 @@ fn main() {
 
     let format_options = config.format;
 
-    let (details_format, state_format, timestamp_mode) = match format_options.as_ref() {
+    let (
+        details_format,
+        state_format,
+        timestamp_mode,
+        large_image,
+        small_image,
+        large_text,
+        small_text,
+    ) = match format_options.as_ref() {
         Some(opt) => (
             opt.details.as_str(),
             opt.state.as_str(),
@@ -49,8 +66,20 @@ fn main() {
                 .as_ref()
                 .map(String::as_str)
                 .unwrap_or(TIMESTAMP_MODE),
+            opt.large_image.as_str(),
+            opt.small_image.as_str(),
+            opt.large_text.as_str(),
+            opt.small_text.as_str(),
         ),
-        None => (DETAILS_FORMAT, STATE_FORMAT, TIMESTAMP_MODE),
+        None => (
+            DETAILS_FORMAT,
+            STATE_FORMAT,
+            TIMESTAMP_MODE,
+            LARGE_IMAGE,
+            SMALL_IMAGE,
+            LARGE_TEXT,
+            SMALL_TEXT,
+        ),
     };
 
     // MPD and Discord connections
@@ -74,11 +103,25 @@ fn main() {
                 mpd_conn::get_token_value(&mut mpd, &song, &caps[1])
             });
 
+            let large_text = re.replace_all(large_text, |caps: &Captures| {
+                mpd_conn::get_token_value(&mut mpd, &song, &caps[1])
+            });
+
+            let small_text = re.replace_all(small_text, |caps: &Captures| {
+                mpd_conn::get_token_value(&mut mpd, &song, &caps[1])
+            });
+
             // set the activity
             if let Err(why) = drpc.set_activity(|act| {
                 act.state(state)
                     .details(details)
-                    .assets(|asset| asset.small_image("notes").large_image("notes"))
+                    .assets(|mut asset| {
+                        if large_image != "" { asset = asset.large_image(large_image) }
+                        if small_image != "" { asset = asset.small_image(small_image) }
+                        if large_text != "" { asset = asset.large_text(large_text) }
+                        if small_text != "" { asset = asset.small_text(small_text) }
+                        asset
+                    })
                     .timestamps(|timestamps| get_timestamp(&mut mpd, timestamps, timestamp_mode))
             }) {
                 eprintln!("Failed to set activity: {}", why);

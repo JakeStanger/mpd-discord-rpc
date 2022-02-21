@@ -1,4 +1,14 @@
-use crate::defaults::{DEFAULT_HOST, DETAILS_FORMAT, DISCORD_ID, STATE_FORMAT, TIMESTAMP_MODE};
+use crate::defaults::{
+    DEFAULT_HOST,
+    DETAILS_FORMAT,
+    DISCORD_ID,
+    STATE_FORMAT,
+    TIMESTAMP_MODE,
+    LARGE_IMAGE,
+    SMALL_IMAGE,
+    LARGE_TEXT,
+    SMALL_TEXT,
+};
 use dirs::config_dir;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -11,6 +21,10 @@ pub struct Format {
     pub(crate) state: String,
     // 'elapsed', 'left', or 'off'. optional as new feat
     pub(crate) timestamp: Option<String>,
+    pub(crate) large_image: String,
+    pub(crate) small_image: String,
+    pub(crate) large_text: String,
+    pub(crate) small_text: String,
 }
 
 #[derive(Serialize, Deserialize)]
@@ -36,6 +50,10 @@ impl Config {
                 details: DETAILS_FORMAT.to_string(),
                 state: STATE_FORMAT.to_string(),
                 timestamp: Some(TIMESTAMP_MODE.to_string()),
+                large_image: LARGE_IMAGE.to_string(),
+                small_image: SMALL_IMAGE.to_string(),
+                large_text: LARGE_TEXT.to_string(),
+                small_text: SMALL_TEXT.to_string(),
             }),
         };
 
@@ -48,7 +66,7 @@ impl Config {
         let path = config_dir().unwrap().join(Path::new("discord-rpc"));
         let filename = "config.toml";
 
-        if !path.exists() {
+        if !path.join(filename).exists() {
             Config::create(&path, filename).expect("Failed to create config file");
         }
 
