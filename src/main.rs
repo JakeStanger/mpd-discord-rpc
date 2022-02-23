@@ -6,17 +6,9 @@ use regex::{Captures, Regex};
 
 use config::Config;
 use defaults::{
-    ACTIVE_TIME,
-    DETAILS_FORMAT,
     IDLE_TIME,
-    STATE_FORMAT,
-    LARGE_IMAGE,
-    SMALL_IMAGE,
-    LARGE_TEXT,
-    SMALL_TEXT,
+    ACTIVE_TIME,
 };
-
-use crate::defaults::TIMESTAMP_MODE;
 use crate::mpd_conn::get_timestamp;
 
 mod config;
@@ -45,11 +37,9 @@ fn main() {
 
     // Load config and defaults if necessary
     let config = Config::load();
-
-    let hosts = &config.hosts;
-
-    let format_options = config.format;
-
+    let id = config.id.unwrap();
+    let hosts = &config.hosts.unwrap();
+    let format_options = config.format.unwrap();
     let (
         details_format,
         state_format,
@@ -58,33 +48,19 @@ fn main() {
         small_image,
         large_text,
         small_text,
-    ) = match format_options.as_ref() {
-        Some(opt) => (
-            opt.details.as_str(),
-            opt.state.as_str(),
-            opt.timestamp
-                .as_ref()
-                .map(String::as_str)
-                .unwrap_or(TIMESTAMP_MODE),
-            opt.large_image.as_str(),
-            opt.small_image.as_str(),
-            opt.large_text.as_str(),
-            opt.small_text.as_str(),
-        ),
-        None => (
-            DETAILS_FORMAT,
-            STATE_FORMAT,
-            TIMESTAMP_MODE,
-            LARGE_IMAGE,
-            SMALL_IMAGE,
-            LARGE_TEXT,
-            SMALL_TEXT,
-        ),
-    };
+    ) = (
+        format_options.details.as_deref().unwrap(),
+        format_options.state.as_deref().unwrap(),
+        format_options.timestamp.as_ref().map(String::as_str).unwrap(),
+        format_options.large_image.as_deref().unwrap(),
+        format_options.small_image.as_deref().unwrap(),
+        format_options.large_text.as_deref().unwrap(),
+        format_options.small_text.as_deref().unwrap(),
+    );
 
     // MPD and Discord connections
     let mut mpd = idle(hosts);
-    let mut drpc = DiscordClient::new(config.id);
+    let mut drpc = DiscordClient::new(id);
 
     drpc.start();
 
