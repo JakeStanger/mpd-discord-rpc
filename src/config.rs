@@ -21,7 +21,7 @@ use std::default::Default;
 pub struct Format {
     pub(crate) details: Option<String>,
     pub(crate) state: Option<String>,
-    // 'elapsed', 'left', or 'off'. optional as new feat
+    // 'elapsed', 'left', or 'off'
     pub(crate) timestamp: Option<String>,
     pub(crate) large_image: Option<String>,
     pub(crate) small_image: Option<String>,
