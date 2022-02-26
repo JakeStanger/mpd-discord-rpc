@@ -51,7 +51,7 @@ fn main() {
     ) = (
         format_options.details.as_deref().unwrap(),
         format_options.state.as_deref().unwrap(),
-        format_options.timestamp.as_ref().map(String::as_str).unwrap(),
+        format_options.timestamp.as_deref().unwrap(),
         format_options.large_image.as_deref().unwrap(),
         format_options.small_image.as_deref().unwrap(),
         format_options.large_text.as_deref().unwrap(),
@@ -92,8 +92,8 @@ fn main() {
                 act.state(state)
                     .details(details)
                     .assets(|mut asset| {
-                        if large_image != "" { asset = asset.large_image(large_image) }
-                        if small_image != "" { asset = asset.small_image(small_image) }
+                        if !large_image.is_empty() { asset = asset.large_image(large_image) }
+                        if !small_image.is_empty() { asset = asset.small_image(small_image) }
                         if large_text != "" { asset = asset.large_text(large_text) }
                         if small_text != "" { asset = asset.small_text(small_text) }
                         asset
