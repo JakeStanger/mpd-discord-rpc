@@ -252,7 +252,7 @@ dependencies = [
 
 [[package]]
 name = "mpd-discord-rpc"
-version = "1.4.0"
+version = "1.4.1"
 dependencies = [
  "dirs",
  "discord-rpc-client",
