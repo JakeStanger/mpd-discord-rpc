@@ -1,21 +1,14 @@
 use crate::defaults::{
-    DEFAULT_HOST,
-    DETAILS_FORMAT,
-    DISCORD_ID,
-    STATE_FORMAT,
-    TIMESTAMP_MODE,
-    LARGE_IMAGE,
-    SMALL_IMAGE,
-    LARGE_TEXT,
-    SMALL_TEXT,
+    DEFAULT_HOST, DETAILS_FORMAT, DISCORD_ID, LARGE_IMAGE, LARGE_TEXT, SMALL_IMAGE, SMALL_TEXT,
+    STATE_FORMAT, TIMESTAMP_MODE,
 };
 use dirs::config_dir;
-use serde::{Deserialize, Serialize};
 use merge::Merge;
+use serde::{Deserialize, Serialize};
+use std::default::Default;
 use std::fs;
 use std::io::{BufReader, Read, Write};
 use std::path::Path;
-use std::default::Default;
 
 #[derive(Serialize, Deserialize, Merge, Clone)]
 pub struct Format {

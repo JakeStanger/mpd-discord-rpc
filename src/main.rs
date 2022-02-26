@@ -4,12 +4,9 @@ use discord_rpc_client::Client as DiscordClient;
 use mpd::{Client as MPDClient, Song, State};
 use regex::{Captures, Regex};
 
-use config::Config;
-use defaults::{
-    IDLE_TIME,
-    ACTIVE_TIME,
-};
 use crate::mpd_conn::get_timestamp;
+use config::Config;
+use defaults::{ACTIVE_TIME, IDLE_TIME};
 
 mod config;
 mod defaults;
@@ -92,10 +89,18 @@ fn main() {
                 act.state(state)
                     .details(details)
                     .assets(|mut asset| {
-                        if !large_image.is_empty() { asset = asset.large_image(large_image) }
-                        if !small_image.is_empty() { asset = asset.small_image(small_image) }
-                        if large_text != "" { asset = asset.large_text(large_text) }
-                        if small_text != "" { asset = asset.small_text(small_text) }
+                        if !large_image.is_empty() {
+                            asset = asset.large_image(large_image)
+                        }
+                        if !small_image.is_empty() {
+                            asset = asset.small_image(small_image)
+                        }
+                        if large_text != "" {
+                            asset = asset.large_text(large_text)
+                        }
+                        if small_text != "" {
+                            asset = asset.small_text(small_text)
+                        }
                         asset
                     })
                     .timestamps(|timestamps| get_timestamp(&mut mpd, timestamps, timestamp_mode))
