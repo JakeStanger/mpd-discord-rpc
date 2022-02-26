@@ -2,13 +2,13 @@ use crate::defaults::{
     DEFAULT_HOST, DETAILS_FORMAT, DISCORD_ID, LARGE_IMAGE, LARGE_TEXT, SMALL_IMAGE, SMALL_TEXT,
     STATE_FORMAT, TIMESTAMP_MODE,
 };
-use dirs::config_dir;
+use dirs::{config_dir, home_dir};
 use merge::Merge;
 use serde::{Deserialize, Serialize};
 use std::default::Default;
 use std::fs;
 use std::io::{BufReader, Read, Write};
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 #[derive(Serialize, Deserialize, Merge, Clone)]
 pub struct Format {
@@ -64,6 +64,18 @@ impl Default for Config {
 }
 
 impl Config {
+    fn get_dir_path() -> PathBuf {
+        let config_dir = config_dir();
+
+        if let Some(config_dir) = config_dir {
+            config_dir.join(Path::new("discord-rpc"))
+        } else {
+            home_dir()
+                .expect("Failed to get user config or home directory, cannot create config file")
+                .join(".discord-rpc")
+        }
+    }
+
     /// Creates the config directory and default configuration file
     fn create(path: &Path, filename: &str) -> std::io::Result<()> {
         println!("creating directory at '{:?}'", path);
@@ -79,20 +91,28 @@ impl Config {
     /// loads the configuration file contents.
     /// If the file does not exist it is created.
     pub fn load() -> Config {
-        let path = config_dir().unwrap().join(Path::new("discord-rpc"));
+        let path = Config::get_dir_path();
         let filename = "config.toml";
 
         if !path.join(filename).exists() {
             Config::create(&path, filename).expect("Failed to create config file");
         }
 
-        let file = fs::File::open(path.join(filename)).unwrap();
+        let filepath = path.join(filename);
+
+        let file = fs::File::open(&filepath).unwrap_or_else(|_| {
+            panic!("Failed to open file for writing at {}", filepath.display())
+        });
+
         let mut buf_reader = BufReader::new(file);
         let mut contents = String::new();
-        buf_reader.read_to_string(&mut contents).unwrap();
+
+        buf_reader
+            .read_to_string(&mut contents)
+            .expect("Failed to parse config file as it contains data which is not valid UTF-8");
 
         toml::from_str::<Config>(contents.as_str())
-            .unwrap()
+            .expect("Failed to parse config file as it contains invalid TOML")
             .merge_custom(Config::default())
     }
 }

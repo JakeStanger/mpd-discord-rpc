@@ -1,7 +1,7 @@
 use std::{thread, time};
 
 use discord_rpc_client::Client as DiscordClient;
-use mpd::{Client as MPDClient, Song, State};
+use mpd::{Client as MPDClient, State};
 use regex::{Captures, Regex};
 
 use crate::mpd_conn::get_timestamp;
@@ -32,7 +32,8 @@ fn idle(hosts: &[String]) -> MPDClient {
 fn main() {
     let re = Regex::new(r"\$(\w+)").unwrap();
 
-    // Load config and defaults if necessary
+    // Load config and defaults if necessary.
+    // We're safe to unwrap everything here since all options should have valid defaults.
     let config = Config::load();
     let id = config.id.unwrap();
     let hosts = &config.hosts.unwrap();
@@ -63,50 +64,53 @@ fn main() {
 
     // Main program loop - keep updating state until exit
     loop {
-        let state = mpd.status().unwrap().state;
+        let state = mpd_conn::get_status(&mut mpd).state;
 
         if state == State::Play {
-            let song: Song = mpd.currentsong().unwrap().unwrap();
+            if let Ok(Some(song)) = mpd.currentsong() {
+                let details = re.replace_all(details_format, |caps: &Captures| {
+                    mpd_conn::get_token_value(&mut mpd, &song, &caps[1])
+                });
 
-            let details = re.replace_all(details_format, |caps: &Captures| {
-                mpd_conn::get_token_value(&mut mpd, &song, &caps[1])
-            });
+                let state = re.replace_all(state_format, |caps: &Captures| {
+                    mpd_conn::get_token_value(&mut mpd, &song, &caps[1])
+                });
 
-            let state = re.replace_all(state_format, |caps: &Captures| {
-                mpd_conn::get_token_value(&mut mpd, &song, &caps[1])
-            });
+                let large_text = re.replace_all(large_text, |caps: &Captures| {
+                    mpd_conn::get_token_value(&mut mpd, &song, &caps[1])
+                });
 
-            let large_text = re.replace_all(large_text, |caps: &Captures| {
-                mpd_conn::get_token_value(&mut mpd, &song, &caps[1])
-            });
+                let small_text = re.replace_all(small_text, |caps: &Captures| {
+                    mpd_conn::get_token_value(&mut mpd, &song, &caps[1])
+                });
 
-            let small_text = re.replace_all(small_text, |caps: &Captures| {
-                mpd_conn::get_token_value(&mut mpd, &song, &caps[1])
-            });
+                let res = drpc.set_activity(|act| {
+                    act.state(state)
+                        .details(details)
+                        .assets(|mut asset| {
+                            if !large_image.is_empty() {
+                                asset = asset.large_image(large_image)
+                            }
+                            if !small_image.is_empty() {
+                                asset = asset.small_image(small_image)
+                            }
+                            if large_text != "" {
+                                asset = asset.large_text(large_text)
+                            }
+                            if small_text != "" {
+                                asset = asset.small_text(small_text)
+                            }
+                            asset
+                        })
+                        .timestamps(|timestamps| {
+                            get_timestamp(&mut mpd, timestamps, timestamp_mode)
+                        })
+                });
 
-            // set the activity
-            if let Err(why) = drpc.set_activity(|act| {
-                act.state(state)
-                    .details(details)
-                    .assets(|mut asset| {
-                        if !large_image.is_empty() {
-                            asset = asset.large_image(large_image)
-                        }
-                        if !small_image.is_empty() {
-                            asset = asset.small_image(small_image)
-                        }
-                        if large_text != "" {
-                            asset = asset.large_text(large_text)
-                        }
-                        if small_text != "" {
-                            asset = asset.small_text(small_text)
-                        }
-                        asset
-                    })
-                    .timestamps(|timestamps| get_timestamp(&mut mpd, timestamps, timestamp_mode))
-            }) {
-                eprintln!("Failed to set activity: {}", why);
-            };
+                if let Err(why) = res {
+                    eprintln!("Failed to set activity: {}", why);
+                };
+            }
         } else {
             if let Err(why) = drpc.clear_activity() {
                 eprintln!("Failed to clear activity: {}", why);

@@ -1,7 +1,7 @@
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use discord_rpc_client::models::ActivityTimestamps;
-use mpd::{Client as MPDClient, Song, State};
+use mpd::{Client as MPDClient, Song, State, Status};
 
 /// Cycles through each MPD host and
 /// returns the first one which is playing,
@@ -10,7 +10,7 @@ pub(crate) fn try_get_mpd_conn(hosts: &[String]) -> Option<MPDClient> {
     for host in hosts {
         match MPDClient::connect(host) {
             Ok(mut conn) => {
-                let state = conn.status().unwrap().state;
+                let state = get_status(&mut conn).state;
                 if state == State::Play {
                     return Some(conn);
                 }
@@ -42,8 +42,8 @@ pub(crate) fn get_token_value(client: &mut MPDClient, song: &Song, token: &str) 
         "disc" => song.tags.get("Disc"),
         "genre" => song.tags.get("Genre"),
         "track" => song.tags.get("Track"),
-        "duration" => return format_time(client.status().unwrap().time.unwrap().1.num_seconds()),
-        "elapsed" => return format_time(client.status().unwrap().elapsed.unwrap().num_seconds()),
+        "duration" => return format_time(get_time(&get_status(client))),
+        "elapsed" => return format_time(get_elapsed(&get_status(client))),
         _ => return token.to_string(),
     };
     s.cloned().unwrap_or_default()
@@ -58,15 +58,46 @@ pub(crate) fn get_timestamp(
         .duration_since(UNIX_EPOCH)
         .unwrap()
         .as_secs();
-    let status = client.status().unwrap();
+    let status = get_status(client);
+
+    let elapsed = get_elapsed(&status);
 
     match mode {
         "left" => {
-            let remaining =
-                status.duration.unwrap().num_seconds() - status.elapsed.unwrap().num_seconds();
+            let duration = get_duration(&status);
+
+            let remaining = duration - elapsed;
             timestamps.end(current_time + remaining as u64)
         }
         "off" => timestamps,
-        _ => timestamps.start(current_time - status.elapsed.unwrap().num_seconds() as u64),
+        _ => timestamps.start(current_time - elapsed as u64),
     }
+}
+
+/// Gets MPD server status.
+/// Panics on error.
+pub(crate) fn get_status(client: &mut MPDClient) -> Status {
+    client.status().expect("Failed to get MPD server status")
+}
+
+fn get_time(status: &Status) -> i64 {
+    status
+        .time
+        .expect("Failed to get duration (time) from MPD status")
+        .1
+        .num_seconds()
+}
+
+fn get_duration(status: &Status) -> i64 {
+    status
+        .duration
+        .expect("Failed to get duration from MPD status")
+        .num_seconds()
+}
+
+fn get_elapsed(status: &Status) -> i64 {
+    status
+        .elapsed
+        .expect("Failed to get elapsed time from MPD status")
+        .num_seconds()
 }
