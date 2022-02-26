@@ -11,12 +11,13 @@ use crate::defaults::{
 };
 use dirs::config_dir;
 use serde::{Deserialize, Serialize};
+use merge::Merge;
 use std::fs;
 use std::io::{BufReader, Read, Write};
 use std::path::Path;
 use std::default::Default;
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Merge, Clone)]
 pub struct Format {
     pub(crate) details: Option<String>,
     pub(crate) state: Option<String>,
@@ -28,37 +29,20 @@ pub struct Format {
     pub(crate) small_text: Option<String>,
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Merge, Clone)]
 pub struct Config {
     pub(crate) id: Option<u64>,
     pub(crate) hosts: Option<Vec<String>>,
     pub(crate) format: Option<Format>,
 }
 
-impl Format {
-    fn merge(self, other: Format) -> Self {
-        Self {
-            details: self.details.or(other.details),
-            state: self.state.or(other.state),
-            timestamp: self.timestamp.or(other.timestamp),
-            large_image: self.large_image.or(other.large_image),
-            small_image: self.small_image.or(other.small_image),
-            large_text: self.large_text.or(other.large_text),
-            small_text: self.small_text.or(other.small_text),
-        }
-    } 
-}
-
 impl Config {
-    fn merge(self, other: Config) -> Self {
-        Self {
-            id: self.id.or(other.id),
-            hosts: self.hosts.or(other.hosts),
-            format: match self.format {
-                Some(format) => Some(format.merge(other.format.unwrap())),
-                _ => other.format
-            }
-        }
+    fn merge_custom(mut self, other: Config) -> Self {
+        self.merge(other.clone());
+        let mut format = self.format.unwrap();
+        format.merge(other.format.unwrap());
+        self.format = Some(format);
+        self
     }
 }
 
@@ -116,6 +100,6 @@ impl Config {
 
         toml::from_str::<Config>(contents.as_str())
             .unwrap()
-            .merge(Config::default())
+            .merge_custom(Config::default())
     }
 }
