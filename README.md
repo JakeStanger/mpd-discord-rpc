@@ -31,7 +31,9 @@ yay -S mpd-discord-rpc-git
 
 ### NixOS
 
-I have a derivation on the way. The `[replace]` tag is causing some issues right now.
+You can use the [`mpd-discord-rpc`](https://search.nixos.org/packages?channel=unstable&show=mpd-discord-rpc&from=0&size=50&sort=relevance&type=packages&query=mpd-discord-rpc) package in nixpkgs. Users of home-manager can also use the [`services.mpd-discord-rpc.enable`](https://github.com/nix-community/home-manager/blob/master/modules/services/mpd-discord-rpc.nix) option.
+
+Many thanks to [Ilan Joselevich](https://github.com/Kranzes) for maintaining both of those.
 
 ## Configuration
 
