@@ -2,7 +2,7 @@
 name = "mpd-discord-rpc"
 version = "1.4.1"
 authors = ["Jake Stanger <mail@jstanger.dev>"]
-edition = "2018"
+edition = "2021"
 description = "Displays your currently playing song / album / artist from MPD in Discord using Rich Presence."
 license = "MIT"
 repository = "https://github.com/JakeStanger/mpd-discord-rpc"
