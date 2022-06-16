@@ -3,14 +3,16 @@
 ![crates.io](https://img.shields.io/crates/v/mpd-discord-rpc)
 ![aur](https://img.shields.io/aur/version/mpd-discord-rpc-git)
 
-Displays your currently playing song / album / artist from MPD in Discord using Rich Presence. It includes support for multiple MPD hosts if, like me, you have more than one server you alternate between.
+Displays your currently playing song / album / artist from MPD in Discord using Rich Presence,
+along with the album art.
+
+It includes support for multiple MPD hosts if, like me, you have more than one server you alternate between.
 
 The program does not require MPD or Discord to be running in order to run.
 
 Once installed just run `mpd-discord-rpc`.
 
 ![status image](https://user-images.githubusercontent.com/5057870/168690393-ca28f55b-0e1a-4c30-ab09-e38754178aa7.png)
-
 
 ## Installation
 

@@ -4,10 +4,12 @@ use discord_rpc_client::Client as DiscordClient;
 use mpd::{Client as MPDClient, State};
 use regex::{Captures, Regex};
 
+use crate::album_art::AlbumArtClient;
 use crate::mpd_conn::get_timestamp;
 use config::Config;
 use defaults::{ACTIVE_TIME, IDLE_TIME};
 
+mod album_art;
 mod config;
 mod defaults;
 mod mpd_conn;
@@ -60,6 +62,8 @@ fn main() {
     let mut mpd = idle(hosts);
     let mut drpc = DiscordClient::new(id);
 
+    let mut album_art_client = AlbumArtClient::new();
+
     drpc.start();
 
     // Main program loop - keep updating state until exit
@@ -87,20 +91,29 @@ fn main() {
                 let res = drpc.set_activity(|act| {
                     act.state(state)
                         .details(details)
-                        .assets(|mut asset| {
-                            if !large_image.is_empty() {
-                                asset = asset.large_image(large_image)
-                            }
-                            if !small_image.is_empty() {
-                                asset = asset.small_image(small_image)
-                            }
+                        .assets(|mut assets| {
+                            // Attempt to fetch art from MusicBrainz
+                            // fall back to configured image
+                            let url = album_art_client.get_album_art_url(song);
+                            match url {
+                                Some(url) => assets = assets.large_image(&url).small_image(url),
+                                None => {
+                                    if !large_image.is_empty() {
+                                        assets = assets.large_image(large_image)
+                                    }
+                                    if !small_image.is_empty() {
+                                        assets = assets.small_image(small_image)
+                                    }
+                                }
+                            };
+
                             if large_text != "" {
-                                asset = asset.large_text(large_text)
+                                assets = assets.large_text(large_text)
                             }
                             if small_text != "" {
-                                asset = asset.small_text(small_text)
+                                assets = assets.small_text(small_text)
                             }
-                            asset
+                            assets
                         })
                         .timestamps(|timestamps| {
                             get_timestamp(&mut mpd, timestamps, timestamp_mode)
