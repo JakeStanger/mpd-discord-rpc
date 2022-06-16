@@ -96,17 +96,17 @@ fn main() {
                             // fall back to configured image
                             let url = album_art_client.get_album_art_url(song);
                             match url {
-                                Some(url) => assets = assets.large_image(&url).small_image(url),
+                                Some(url) => assets = assets.large_image(&url),
                                 None => {
                                     if !large_image.is_empty() {
                                         assets = assets.large_image(large_image)
                                     }
-                                    if !small_image.is_empty() {
-                                        assets = assets.small_image(small_image)
-                                    }
                                 }
                             };
 
+                            if !small_image.is_empty() {
+                                assets = assets.small_image(small_image)
+                            }
                             if large_text != "" {
                                 assets = assets.large_text(large_text)
                             }
