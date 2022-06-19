@@ -99,6 +99,6 @@ impl AlbumArtClient {
             }
         };
 
-        mb_album_id.map(|id| format!("https://coverartarchive.org/release/{}/front", id))
+        mb_album_id.map(|id| format!("https://coverartarchive.org/release/{}/front-250", id))
     }
 }
