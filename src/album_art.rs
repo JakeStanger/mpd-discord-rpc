@@ -1,5 +1,6 @@
-// use lazy_static::lazy_static;
-use mpd::Song;
+use crate::mpd_conn::try_get_first_tag;
+use mpd_client::commands::responses::Song;
+use mpd_client::Tag;
 use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::collections::HashMap;
@@ -13,13 +14,6 @@ struct SearchResult {
 struct Release {
     id: String,
 }
-
-// lazy_static! {
-//     static ref searchCache: HashMap<(&'static str, &'static str), &'static str> = {
-//         let mut map = HashMap::new();
-//         map
-//     };
-// }
 
 pub struct AlbumArtClient {
     release_cache: HashMap<(String, String), String>,

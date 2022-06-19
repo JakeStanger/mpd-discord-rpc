@@ -111,10 +111,10 @@ async fn main() {
                             if !small_image.is_empty() {
                                 assets = assets.small_image(small_image)
                             }
-                            if large_text != "" {
+                            if !large_text.is_empty() {
                                 assets = assets.large_text(large_text)
                             }
-                            if small_text != "" {
+                            if !small_text.is_empty() {
                                 assets = assets.small_text(small_text)
                             }
                             assets
