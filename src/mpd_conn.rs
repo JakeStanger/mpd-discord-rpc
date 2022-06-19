@@ -1,32 +1,54 @@
+use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
-use tokio::net::TcpStream;
+use tokio::net::{TcpStream, UnixStream};
 
 use discord_rpc_client::models::ActivityTimestamps;
 use mpd_client::commands::responses::{PlayState, Song, Status};
-use mpd_client::{commands, Client as MPDClient, Tag};
+use mpd_client::raw::MpdProtocolError;
+use mpd_client::{commands, Client as MPDClient, Connection, Tag};
 
 /// Cycles through each MPD host and
 /// returns the first one which is playing,
 /// or none if one is not found.
 pub(crate) async fn try_get_mpd_conn(hosts: &[String]) -> Option<MPDClient> {
     for host in hosts {
-        let connection = TcpStream::connect(host).await;
+        let connection = if is_unix_socket(host) {
+            connect_unix(host).await
+        } else {
+            connect_tcp(host).await
+        };
+
         match connection {
-            Ok(conn) => match MPDClient::connect(conn).await {
-                Ok(conn) => {
-                    let client = conn.0;
-                    let state = get_status(&client).await.state;
-                    if state == PlayState::Playing {
-                        return Some(client);
-                    }
+            Ok(conn) => {
+                let client = conn.0;
+                let state = get_status(&client).await.state;
+                if state == PlayState::Playing {
+                    return Some(client);
                 }
-                Err(why) => eprintln!("Error connecting to {}: {}", host, why),
-            },
+            }
             Err(why) => eprintln!("Error connecting to {}: {}", host, why),
         }
     }
 
     None
+}
+
+fn is_unix_socket(host: &String) -> bool {
+    PathBuf::from(host).is_file()
+}
+
+async fn connect_unix(host: &String) -> Result<Connection, MpdProtocolError> {
+    let connection = UnixStream::connect(host)
+        .await
+        .unwrap_or_else(|_| panic!("Error connecting to unix socket: {}", host));
+    MPDClient::connect(connection).await
+}
+
+async fn connect_tcp(host: &String) -> Result<Connection, MpdProtocolError> {
+    let connection = TcpStream::connect(host)
+        .await
+        .unwrap_or_else(|_| panic!("Error connecting to unix socket: {}", host));
+    MPDClient::connect(connection).await
 }
 
 /// Formats a duration given in seconds
