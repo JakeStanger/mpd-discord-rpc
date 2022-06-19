@@ -85,15 +85,17 @@ impl AlbumArtClient {
     /// Uses MPD's internal MusicBrainz album ID tag if its set,
     /// otherwise falls back to searching.
     pub fn get_album_art_url(&mut self, song: Song) -> Option<String> {
-        let mb_album_id = match song.tags.get("MUSICBRAINZ_ALBUMID") {
-            Some(id) => Some(id.clone()),
+        let mb_album_id = match try_get_first_tag(song.tags.get(&Tag::MusicBrainzReleaseId)) {
+            Some(id) => Some(id.to_string()),
             None => {
                 let tags = song.tags;
-                let artist = tags.get("Artist");
-                let album = tags.get("Album");
+                let artist = try_get_first_tag(tags.get(&Tag::Artist));
+                let album = try_get_first_tag(tags.get(&Tag::Album));
 
                 match (artist, album) {
-                    (Some(artist), Some(album)) => self.find_release(artist.clone(), album.clone()),
+                    (Some(artist), Some(album)) => {
+                        self.find_release(artist.to_string(), album.to_string())
+                    }
                     _ => None,
                 }
             }

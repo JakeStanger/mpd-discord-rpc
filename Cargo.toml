@@ -11,13 +11,14 @@ keywords = ["mpd", "discord", "rpc", "music", "mopidy"]
 
 [dependencies]
 discord-rpc-client = "0.3.0"
-mpd = "0.0.12"
+mpd_client = "0.7.4"
 dirs = "4.0.0"
 toml = "0.5.9"
 regex = "1.5.6"
 serde = { version = "1.0.137", features = ["derive"] }
 merge = "0.1.0"
 reqwest = { version = "0.11.11", features = ["json", "blocking"] }
+tokio = { version = "1.16.1", features = ["rt"] }
 
 [patch.crates-io]
 discord-rpc-client = { git = "https://github.com/JakeStanger/discord-rpc-client.rs" }
