@@ -30,6 +30,7 @@ pub struct Config {
 }
 
 impl Config {
+    /// Merges the user's config into the default config
     fn merge_custom(mut self, other: Config) -> Self {
         self.merge(other.clone());
         let mut format = self.format.unwrap();
@@ -64,6 +65,7 @@ impl Default for Config {
 }
 
 impl Config {
+    /// Gets the path to the config directory
     fn get_dir_path() -> PathBuf {
         let config_dir = config_dir();
 
