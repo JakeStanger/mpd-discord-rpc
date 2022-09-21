@@ -6,6 +6,7 @@ use discord_rpc_client::models::ActivityTimestamps;
 use mpd_client::commands::responses::{PlayState, Song, Status};
 use mpd_client::raw::MpdProtocolError;
 use mpd_client::{commands, Client as MPDClient, Connection, Tag};
+use std::os::unix::fs::FileTypeExt;
 
 /// Cycles through each MPD host and
 /// returns the first one which is playing,
@@ -34,7 +35,12 @@ pub(crate) async fn try_get_mpd_conn(hosts: &[String]) -> Option<MPDClient> {
 }
 
 fn is_unix_socket(host: &String) -> bool {
-    PathBuf::from(host).is_file()
+    let path = PathBuf::from(host);
+    path.exists()
+        && match path.metadata() {
+            Ok(metadata) => metadata.file_type().is_socket(),
+            Err(_) => false,
+        }
 }
 
 async fn connect_unix(host: &String) -> Result<Connection, MpdProtocolError> {
