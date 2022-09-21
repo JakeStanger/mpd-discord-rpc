@@ -36,10 +36,11 @@ pub(crate) async fn try_get_mpd_conn(hosts: &[String]) -> Option<MPDClient> {
 
 fn is_unix_socket(host: &String) -> bool {
     let path = PathBuf::from(host);
-    path.exists() && match path.metadata() {
-        Ok(metadata) => metadata.file_type().is_socket(),
-        Err(_) => false,
-    }
+    path.exists()
+        && match path.metadata() {
+            Ok(metadata) => metadata.file_type().is_socket(),
+            Err(_) => false,
+        }
 }
 
 async fn connect_unix(host: &String) -> Result<Connection, MpdProtocolError> {
