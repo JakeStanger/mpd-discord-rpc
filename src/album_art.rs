@@ -1,6 +1,6 @@
 use crate::mpd_conn::try_get_first_tag;
-use mpd_client::commands::responses::Song;
-use mpd_client::Tag;
+use mpd_client::responses::Song;
+use mpd_client::tag::Tag;
 use reqwest::blocking::Client;
 use serde::Deserialize;
 use std::collections::HashMap;

@@ -1,7 +1,7 @@
 use std::{thread, time};
 
 use discord_rpc_client::Client as DiscordClient;
-use mpd_client::commands::responses::{PlayState, Song};
+use mpd_client::responses::{PlayState, Song};
 use mpd_client::{commands, Client as MPDClient};
 use regex::Regex;
 

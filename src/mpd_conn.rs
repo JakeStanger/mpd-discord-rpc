@@ -3,9 +3,11 @@ use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::net::{TcpStream, UnixStream};
 
 use discord_rpc_client::models::ActivityTimestamps;
-use mpd_client::commands::responses::{PlayState, Song, Status};
-use mpd_client::raw::MpdProtocolError;
-use mpd_client::{commands, Client as MPDClient, Connection, Tag};
+use mpd_client::client::Connection;
+use mpd_client::protocol::MpdProtocolError;
+use mpd_client::responses::{PlayState, Song, Status};
+use mpd_client::tag::Tag;
+use mpd_client::{commands, Client as MPDClient};
 use std::os::unix::fs::FileTypeExt;
 
 /// Cycles through each MPD host and
