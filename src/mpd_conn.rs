@@ -69,7 +69,7 @@ fn format_time(time: u64) -> String {
 /// Converts a string format token value
 /// into its respective MPD value.
 pub(crate) async fn get_token_value(client: &mut MPDClient, song: &Song, token: &str) -> String {
-    let s = match token {
+    match token {
         "title" => song.title(),
         "album" => try_get_first_tag(song.tags.get(&Tag::Album)),
         "artist" => try_get_first_tag(song.tags.get(&Tag::Artist)),
@@ -79,9 +79,10 @@ pub(crate) async fn get_token_value(client: &mut MPDClient, song: &Song, token: 
         "track" => try_get_first_tag(song.tags.get(&Tag::Track)),
         "duration" => return format_time(get_duration(&get_status(client).await)),
         "elapsed" => return format_time(get_elapsed(&get_status(client).await)),
-        _ => return token.to_string(),
-    };
-    s.unwrap_or_default().to_string()
+        _ => Some(token),
+    }
+    .unwrap_or("unknown")
+    .to_string()
 }
 
 /// Gets the activity timestamp based off the current song elapsed/remaining
