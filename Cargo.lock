@@ -96,16 +96,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baf1de4339761588bc0619e3cbc0120ee582ebb74b53b4efbf79117bd2da40fd"
 
 [[package]]
-name = "chrono"
-version = "0.4.19"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "670ad68c9088c2a963aaa298cb369688cf3f9465ce5e2d4ca10e6e0098a1ce73"
-dependencies = [
- "num-integer",
- "num-traits",
-]
-
-[[package]]
 name = "cloudabi"
 version = "0.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -172,7 +162,8 @@ dependencies = [
 [[package]]
 name = "discord-rpc-client"
 version = "0.3.0"
-source = "git+https://github.com/JakeStanger/discord-rpc-client.rs#e14a4368ce7b4195df87e209b04ade36d89b7c6a"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b176996f649824caad056133be782350e287687a5cae43636215f6b153bac481"
 dependencies = [
  "byteorder",
  "bytes 0.4.12",
@@ -324,9 +315,6 @@ name = "hashbrown"
 version = "0.11.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "ab5ef0d4909ef3724cc8cce6ccc8572c5c817592e9285f5464f8e86f8bd3726e"
-dependencies = [
- "ahash",
-]
 
 [[package]]
 name = "hermit-abi"
@@ -601,13 +589,11 @@ dependencies = [
 
 [[package]]
 name = "mpd_client"
-version = "0.7.4"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0126857dd28ede82fd63c913881e0f21586a2148c79d4f96ad620517a474cab9"
+checksum = "ab5ddb4e7f7f0323823dcadfb17cb8b4d25d7ebcfee20779a814091d5b6dec95"
 dependencies = [
  "bytes 1.1.0",
- "chrono",
- "futures-core",
  "mpd_protocol",
  "tokio",
  "tracing",
@@ -615,12 +601,12 @@ dependencies = [
 
 [[package]]
 name = "mpd_protocol"
-version = "0.13.0"
+version = "1.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18039a2cd7aa60ebadfe3e759053188def0aef4c036842e645c9ed4490c8ebd3"
+checksum = "afcc158275b88361fed416b6efe013286b8fe0c8929bbd569504e5992f638693"
 dependencies = [
+ "ahash",
  "bytes 1.1.0",
- "hashbrown",
  "nom",
  "tokio",
  "tracing",
@@ -671,16 +657,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "c28774a7fd2fbb4f0babd8237ce554b73af68021b5f695a3cebd6c59bac0980f"
 dependencies = [
  "winapi 0.3.9",
-]
-
-[[package]]
-name = "num-integer"
-version = "0.1.45"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "225d3389fb3509a24c93f5c29eb6bde2586b98d9f016636dff58d7c6f7569cd9"
-dependencies = [
- "autocfg 1.1.0",
- "num-traits",
 ]
 
 [[package]]
