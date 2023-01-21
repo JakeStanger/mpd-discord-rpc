@@ -162,8 +162,7 @@ dependencies = [
 [[package]]
 name = "discord-rpc-client"
 version = "0.3.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b176996f649824caad056133be782350e287687a5cae43636215f6b153bac481"
+source = "git+https://github.com/JakeStanger/discord-rpc-client.rs#e14a4368ce7b4195df87e209b04ade36d89b7c6a"
 dependencies = [
  "byteorder",
  "bytes 0.4.12",
