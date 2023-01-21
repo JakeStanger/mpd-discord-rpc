@@ -91,3 +91,16 @@ small_image = "notes"
 large_text = ""
 small_text = ""
 ```
+
+## Album art
+
+Album art is pulled from the MusicBrainz database and Album Art Archive automatically. 
+You'll only get a cover if it can be found though; there's a couple of things you can do to help this:
+
+- Make sure your music is sensibly tagged. 
+    In most cases MusicBrainz will be searched for releases matching the album/artist name.
+- Add MusicBrainz release tags to your tracks. 
+    This is officially supported by MPD and can be done automatically using MusicBrainz Picard.
+- Add missing album art to MusicBrainz. 
+    Many albums are missing covers, and you can upload your own to the database to contribute these for everyone.
+
