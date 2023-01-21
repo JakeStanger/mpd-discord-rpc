@@ -162,7 +162,6 @@ dependencies = [
 [[package]]
 name = "discord-rpc-client"
 version = "0.3.0"
-source = "git+https://github.com/JakeStanger/discord-rpc-client.rs#e14a4368ce7b4195df87e209b04ade36d89b7c6a"
 dependencies = [
  "byteorder",
  "bytes 0.4.12",
@@ -573,7 +572,7 @@ dependencies = [
 
 [[package]]
 name = "mpd-discord-rpc"
-version = "1.5.3"
+version = "1.5.4"
 dependencies = [
  "dirs",
  "discord-rpc-client",
