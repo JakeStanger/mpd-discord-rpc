@@ -123,7 +123,7 @@ async fn main() {
                 });
 
                 if let Err(why) = res {
-                    eprintln!("Failed to set activity: {}", why);
+                    eprintln!("Failed to set activity: {:?}", why);
                 };
             }
         } else {
