@@ -1,75 +1,139 @@
 use crate::mpd_conn::try_get_first_tag;
 use mpd_client::responses::Song;
 use mpd_client::tag::Tag;
-use reqwest::blocking::Client;
+use reqwest::header::{HeaderMap, HeaderValue};
+use reqwest::Client;
 use serde::Deserialize;
 use std::collections::HashMap;
+use std::fmt::{Display, Formatter};
 
-#[derive(Deserialize)]
+static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
+
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "kebab-case")]
 struct SearchResult {
-    releases: Vec<Release>,
+    release_groups: Vec<ReleaseGroup>,
 }
 
-#[derive(Deserialize)]
-struct Release {
+#[derive(Deserialize, Debug)]
+struct ReleaseGroup {
     id: String,
 }
 
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "kebab-case")]
+struct Release {
+    id: String,
+    release_group: ReleaseGroup,
+    cover_art_archive: ReleaseCoverArt,
+}
+
+#[derive(Deserialize, Debug)]
+struct ReleaseCoverArt {
+    front: bool,
+}
+
+#[derive(Debug, Copy, Clone)]
+enum Type {
+    Release,
+    ReleaseGroup,
+}
+
+impl Display for Type {
+    fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
+        write!(
+            f,
+            "{}",
+            match self {
+                Self::Release => "release",
+                Self::ReleaseGroup => "release-group",
+            }
+        )
+    }
+}
+
 pub struct AlbumArtClient {
-    release_cache: HashMap<(String, String), String>,
+    release_group_cache: HashMap<(String, String), (String, Type)>,
+    client: Client,
 }
 
 impl AlbumArtClient {
-    pub fn new() -> AlbumArtClient {
-        let release_cache = HashMap::new();
-        AlbumArtClient { release_cache }
-    }
+    pub fn new() -> Self {
+        let release_group_cache = HashMap::new();
 
-    /// Searches for a release on MusicBrainz
-    /// Returns its ID if one is found.
-    fn find_release(&mut self, artist: String, album: String) -> Option<String> {
-        static APP_USER_AGENT: &str =
-            concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
-
-        let query = format!("artist:{} AND release:{}", &artist, &album);
-
-        let cache_key = (artist, album);
-        if self.release_cache.contains_key(&cache_key) {
-            return Some(self.release_cache.get(&cache_key).unwrap().to_string());
-        }
-
-        let url = format!(
-            "https://musicbrainz.org/ws/2/release/?query={}&limit=1",
-            query
+        let mut header_map = HeaderMap::new();
+        header_map.insert(
+            "accept",
+            HeaderValue::from_str("application/json").expect("Failed to parse content type"),
         );
 
         let client = Client::builder()
             .user_agent(APP_USER_AGENT)
+            .default_headers(header_map)
             .build()
             .expect("Failed to create HTTP client");
 
-        let response = client.get(&url).header("Accept", "application/json").send();
+        Self {
+            release_group_cache,
+            client,
+        }
+    }
+
+    /// Looks up a release by its UUID on MusicBrainz.
+    /// If the release has a cover, returns the ID of that record.
+    /// If not, returns the ID of its release group.
+    async fn get_record_id(&self, release_id: &str) -> Option<(String, Type)> {
+        let url = format!("https://musicbrainz.org/ws/2/release/{release_id}?inc=release-groups");
+
+        let response = self.client.get(&url).send().await;
+
+        match response {
+            Ok(response) if response.status() == 200 => {
+                let response = response.json::<Release>().await;
+                response.ok().map(|release| {
+                    if release.cover_art_archive.front {
+                        (release.id, Type::Release)
+                    } else {
+                        (release.release_group.id, Type::ReleaseGroup)
+                    }
+                })
+            }
+            _ => None,
+        }
+    }
+
+    /// Searches for a release on MusicBrainz
+    /// Returns its ID if one is found.
+    async fn find_release_group_id(&self, artist: &str, album: &str) -> Option<String> {
+        let query = format!("artist:{artist} AND release:{album}");
+        let url = format!("https://musicbrainz.org/ws/2/release-group/?query={query}&limit=1",);
+
+        let response = self.client.get(&url).send().await;
 
         if let Ok(response) = response {
             if response.status() != 200 {
                 return None;
             }
 
-            let response = response
+            let mut response = response
                 .json::<SearchResult>()
+                .await
                 .expect("Received response from MusicBrainz in unexpected format");
 
-            let id = response.releases.first().map(|release| release.id.clone());
-
-            match id {
-                Some(id) => {
-                    self.release_cache.insert(cache_key, id.clone());
-                    Some(id)
-                }
-                None => None,
-            }
+            response.release_groups.pop().map(|rg| rg.id)
         } else {
             None
+        }
+    }
+
+    fn get_cache_key(song: &Song) -> Option<(String, String)> {
+        let tags = &song.tags;
+        let artist = try_get_first_tag(tags.get(&Tag::Artist));
+        let album = try_get_first_tag(tags.get(&Tag::Album));
+
+        match (artist, album) {
+            (Some(artist), Some(album)) => Some((artist.to_string(), album.to_string())),
+            _ => None,
         }
     }
 
@@ -78,23 +142,34 @@ impl AlbumArtClient {
     ///
     /// Uses MPD's internal MusicBrainz album ID tag if its set,
     /// otherwise falls back to searching.
-    pub fn get_album_art_url(&mut self, song: Song) -> Option<String> {
-        let mb_album_id = match try_get_first_tag(song.tags.get(&Tag::MusicBrainzReleaseId)) {
-            Some(id) => Some(id.to_string()),
-            None => {
-                let tags = song.tags;
-                let artist = try_get_first_tag(tags.get(&Tag::Artist));
-                let album = try_get_first_tag(tags.get(&Tag::Album));
+    pub async fn get_album_art_url(&mut self, song: Song) -> Option<String> {
+        let cache_key = Self::get_cache_key(&song);
 
-                match (artist, album) {
-                    (Some(artist), Some(album)) => {
-                        self.find_release(artist.to_string(), album.to_string())
-                    }
-                    _ => None,
+        if let Some(cache_key) = cache_key {
+            let id = if let Some(id) = self.release_group_cache.remove(&cache_key) {
+                Some(id)
+            } else {
+                let release_id = try_get_first_tag(song.tags.get(&Tag::MusicBrainzReleaseId));
+                if let Some(release_id) = release_id {
+                    self.get_record_id(release_id).await
+                } else {
+                    self.find_release_group_id(&cache_key.0, &cache_key.1)
+                        .await
+                        .map(|id| (id, Type::ReleaseGroup))
                 }
-            }
-        };
+            };
 
-        mb_album_id.map(|id| format!("https://coverartarchive.org/release/{}/front-250", id))
+            if let Some((id, record_type)) = id {
+                self.release_group_cache
+                    .insert(cache_key, (id.clone(), record_type));
+                Some(format!(
+                    "https://coverartarchive.org/{record_type}/{id}/front-250"
+                ))
+            } else {
+                None
+            }
+        } else {
+            None
+        }
     }
 }
