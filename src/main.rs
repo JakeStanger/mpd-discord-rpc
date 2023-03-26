@@ -92,15 +92,14 @@ async fn main() {
 
                 let timestamps = get_timestamp(&mut mpd, timestamp_mode).await;
 
+                let url = album_art_client.get_album_art_url(song).await;
+
                 let res = drpc.set_activity(|act| {
                     act.state(state)
                         .details(details)
                         .assets(|mut assets| {
-                            // Attempt to fetch art from MusicBrainz
-                            // fall back to configured image
-                            let url = album_art_client.get_album_art_url(song);
                             match url {
-                                Some(url) => assets = assets.large_image(&url),
+                                Some(url) => assets = assets.large_image(url),
                                 None => {
                                     if !large_image.is_empty() {
                                         assets = assets.large_image(large_image)
