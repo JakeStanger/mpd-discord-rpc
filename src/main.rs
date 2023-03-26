@@ -1,4 +1,4 @@
-use std::{thread, time};
+use std::time::Duration;
 
 use discord_rpc_client::Client as DiscordClient;
 use mpd_client::responses::{PlayState, Song};
@@ -8,12 +8,13 @@ use regex::Regex;
 use crate::album_art::AlbumArtClient;
 use crate::mpd_conn::get_timestamp;
 use config::Config;
-use defaults::{ACTIVE_TIME, IDLE_TIME};
 
 mod album_art;
 mod config;
-mod defaults;
 mod mpd_conn;
+
+pub const IDLE_TIME: u64 = 5;
+pub const ACTIVE_TIME: u64 = 1;
 
 /// Attempts to find a playing MPD host every 5
 /// seconds until one is found
@@ -36,38 +37,17 @@ async fn idle(hosts: &[String]) -> MPDClient {
 async fn main() {
     let re = Regex::new(r"\$(\w+)").unwrap();
 
-    // Load config and defaults if necessary.
-    // We're safe to unwrap everything here since all options should have valid defaults.
     let config = Config::load();
-    let id = config.id.unwrap();
-    let hosts = &config.hosts.unwrap();
-    let format_options = config.format.unwrap();
-    let (
-        details_format,
-        state_format,
-        timestamp_mode,
-        large_image,
-        small_image,
-        large_text_format,
-        small_text_format,
-    ) = (
-        format_options.details.as_deref().unwrap(),
-        format_options.state.as_deref().unwrap(),
-        format_options.timestamp.as_deref().unwrap(),
-        format_options.large_image.as_deref().unwrap(),
-        format_options.small_image.as_deref().unwrap(),
-        format_options.large_text.as_deref().unwrap(),
-        format_options.small_text.as_deref().unwrap(),
-    );
+    let format = &config.format;
 
-    let details_tokens = get_tokens(&re, details_format);
-    let state_tokens = get_tokens(&re, state_format);
-    let large_text_tokens = get_tokens(&re, large_text_format);
-    let small_text_tokens = get_tokens(&re, state_format);
+    let details_tokens = get_tokens(&re, &format.details);
+    let state_tokens = get_tokens(&re, &format.state);
+    let large_text_tokens = get_tokens(&re, &format.large_text);
+    let small_text_tokens = get_tokens(&re, &format.small_text);
 
     // MPD and Discord connections
-    let mut mpd = idle(hosts).await;
-    let mut drpc = DiscordClient::new(id);
+    let mut mpd = idle(&config.hosts).await;
+    let mut drpc = DiscordClient::new(config.id);
 
     let mut album_art_client = AlbumArtClient::new();
 
@@ -83,14 +63,14 @@ async fn main() {
                 let song = song_in_queue.song;
 
                 let details =
-                    replace_tokens(details_format, &details_tokens, &song, &mut mpd).await;
-                let state = replace_tokens(state_format, &state_tokens, &song, &mut mpd).await;
+                    replace_tokens(&format.details, &details_tokens, &song, &mut mpd).await;
+                let state = replace_tokens(&format.state, &state_tokens, &song, &mut mpd).await;
                 let large_text =
-                    replace_tokens(large_text_format, &large_text_tokens, &song, &mut mpd).await;
+                    replace_tokens(&format.large_text, &large_text_tokens, &song, &mut mpd).await;
                 let small_text =
-                    replace_tokens(small_text_format, &small_text_tokens, &song, &mut mpd).await;
+                    replace_tokens(&format.small_text, &small_text_tokens, &song, &mut mpd).await;
 
-                let timestamps = get_timestamp(&mut mpd, timestamp_mode).await;
+                let timestamps = get_timestamp(&mut mpd, format.timestamp).await;
 
                 let url = album_art_client.get_album_art_url(song).await;
 
@@ -101,14 +81,14 @@ async fn main() {
                             match url {
                                 Some(url) => assets = assets.large_image(url),
                                 None => {
-                                    if !large_image.is_empty() {
-                                        assets = assets.large_image(large_image)
+                                    if !format.large_image.is_empty() {
+                                        assets = assets.large_image(&format.large_image);
                                     }
                                 }
                             };
 
-                            if !small_image.is_empty() {
-                                assets = assets.small_image(small_image)
+                            if !format.small_image.is_empty() {
+                                assets = assets.small_image(&format.small_image);
                             }
                             if !large_text.is_empty() {
                                 assets = assets.large_text(large_text)
@@ -130,7 +110,7 @@ async fn main() {
                 eprintln!("Failed to clear activity: {}", why);
             };
 
-            mpd = idle(hosts).await;
+            mpd = idle(&config.hosts).await;
         }
 
         // sleep for 1 sec to not hammer the mpd and rpc servers

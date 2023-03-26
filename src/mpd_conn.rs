@@ -2,6 +2,7 @@ use std::path::PathBuf;
 use std::time::{SystemTime, UNIX_EPOCH};
 use tokio::net::{TcpStream, UnixStream};
 
+use crate::config::TimestampMode;
 use discord_rpc_client::models::ActivityTimestamps;
 use mpd_client::client::Connection;
 use mpd_client::protocol::MpdProtocolError;
@@ -88,7 +89,7 @@ pub(crate) async fn get_token_value(client: &mut MPDClient, song: &Song, token: 
 }
 
 /// Gets the activity timestamp based off the current song elapsed/remaining
-pub(crate) async fn get_timestamp(client: &mut MPDClient, mode: &str) -> ActivityTimestamps {
+pub async fn get_timestamp(client: &mut MPDClient, mode: TimestampMode) -> ActivityTimestamps {
     let current_time = SystemTime::now()
         .duration_since(UNIX_EPOCH)
         .unwrap()
@@ -101,14 +102,14 @@ pub(crate) async fn get_timestamp(client: &mut MPDClient, mode: &str) -> Activit
     let timestamps = ActivityTimestamps::new();
 
     match mode {
-        "left" => {
+        TimestampMode::Left => {
             let duration = get_duration(&status);
 
             let remaining = duration - elapsed;
-            timestamps.end(current_time + remaining as u64)
+            timestamps.end(current_time + remaining)
         }
-        "off" => timestamps,
-        _ => timestamps.start(current_time - elapsed as u64),
+        TimestampMode::Off => timestamps,
+        TimestampMode::Elapsed => timestamps.start(current_time - elapsed),
     }
 }
 
