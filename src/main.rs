@@ -28,7 +28,7 @@ async fn idle(hosts: &[String]) -> MPDClient {
             return client;
         }
 
-        thread::sleep(time::Duration::from_secs(IDLE_TIME));
+        tokio::time::sleep(Duration::from_secs(IDLE_TIME)).await;
     }
 }
 
@@ -134,7 +134,7 @@ async fn main() {
         }
 
         // sleep for 1 sec to not hammer the mpd and rpc servers
-        thread::sleep(time::Duration::from_secs(ACTIVE_TIME));
+        tokio::time::sleep(Duration::from_secs(ACTIVE_TIME)).await;
     }
 }
 
