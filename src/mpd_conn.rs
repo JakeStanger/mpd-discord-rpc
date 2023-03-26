@@ -14,7 +14,7 @@ use std::os::unix::fs::FileTypeExt;
 /// Cycles through each MPD host and
 /// returns the first one which is playing,
 /// or none if one is not found.
-pub(crate) async fn try_get_mpd_conn(hosts: &[String]) -> Option<MPDClient> {
+pub async fn try_get_mpd_conn(hosts: &[String]) -> Option<MPDClient> {
     for host in hosts {
         let connection = if is_unix_socket(host) {
             connect_unix(host).await
@@ -30,7 +30,7 @@ pub(crate) async fn try_get_mpd_conn(hosts: &[String]) -> Option<MPDClient> {
                     return Some(client);
                 }
             }
-            Err(why) => eprintln!("Error connecting to {}: {}", host, why),
+            Err(why) => eprintln!("Error connecting to {host}: {why:?}"),
         }
     }
 
@@ -40,23 +40,22 @@ pub(crate) async fn try_get_mpd_conn(hosts: &[String]) -> Option<MPDClient> {
 fn is_unix_socket(host: &String) -> bool {
     let path = PathBuf::from(host);
     path.exists()
-        && match path.metadata() {
-            Ok(metadata) => metadata.file_type().is_socket(),
-            Err(_) => false,
-        }
+        && path
+            .metadata()
+            .map_or(false, |metadata| metadata.file_type().is_socket())
 }
 
 async fn connect_unix(host: &String) -> Result<Connection, MpdProtocolError> {
     let connection = UnixStream::connect(host)
         .await
-        .unwrap_or_else(|_| panic!("Error connecting to unix socket: {}", host));
+        .unwrap_or_else(|_| panic!("Error connecting to unix socket: {host}"));
     MPDClient::connect(connection).await
 }
 
 async fn connect_tcp(host: &String) -> Result<Connection, MpdProtocolError> {
     let connection = TcpStream::connect(host)
         .await
-        .unwrap_or_else(|_| panic!("Error connecting to unix socket: {}", host));
+        .unwrap_or_else(|_| panic!("Error connecting to unix socket: {host}"));
     MPDClient::connect(connection).await
 }
 
@@ -66,12 +65,12 @@ fn format_time(time: u64) -> String {
     let minutes = (time / 60) % 60;
     let seconds = time % 60;
 
-    format!("{:0>2}:{:0>2}", minutes, seconds)
+    format!("{minutes:0>2}:{seconds:0>2}")
 }
 
 /// Converts a string format token value
 /// into its respective MPD value.
-pub(crate) async fn get_token_value(client: &mut MPDClient, song: &Song, token: &str) -> String {
+pub async fn get_token_value(client: &mut MPDClient, song: &Song, token: &str) -> String {
     match token {
         "title" => song.title(),
         "album" => try_get_first_tag(song.tags.get(&Tag::Album)),
@@ -115,7 +114,7 @@ pub async fn get_timestamp(client: &mut MPDClient, mode: TimestampMode) -> Activ
 
 /// Gets MPD server status.
 /// Panics on error.
-pub(crate) async fn get_status(client: &MPDClient) -> Status {
+pub async fn get_status(client: &MPDClient) -> Status {
     client
         .command(commands::Status)
         .await
@@ -124,11 +123,8 @@ pub(crate) async fn get_status(client: &MPDClient) -> Status {
 
 /// Attempts to read the first value for a tag
 /// (since the MPD client returns a vector of tags, or None)
-pub(crate) fn try_get_first_tag(vec: Option<&Vec<String>>) -> Option<&str> {
-    match vec {
-        Some(vec) => vec.first().map(|val| val.as_str()),
-        None => None,
-    }
+pub fn try_get_first_tag(vec: Option<&Vec<String>>) -> Option<&str> {
+    vec.and_then(|vec| vec.first().map(String::as_str))
 }
 
 /// Gets the duration of the current song

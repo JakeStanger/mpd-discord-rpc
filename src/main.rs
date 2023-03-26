@@ -35,7 +35,7 @@ async fn idle(hosts: &[String]) -> MPDClient {
 
 #[tokio::main]
 async fn main() {
-    let re = Regex::new(r"\$(\w+)").unwrap();
+    let re = Regex::new(r"\$(\w+)").expect("Failed to parse regex");
 
     let config = Config::load();
     let format = &config.format;
@@ -91,10 +91,10 @@ async fn main() {
                                 assets = assets.small_image(&format.small_image);
                             }
                             if !large_text.is_empty() {
-                                assets = assets.large_text(large_text)
+                                assets = assets.large_text(large_text);
                             }
                             if !small_text.is_empty() {
-                                assets = assets.small_text(small_text)
+                                assets = assets.small_text(small_text);
                             }
                             assets
                         })
@@ -102,12 +102,12 @@ async fn main() {
                 });
 
                 if let Err(why) = res {
-                    eprintln!("Failed to set activity: {:?}", why);
+                    eprintln!("Failed to set activity: {why:?}");
                 };
             }
         } else {
             if let Err(why) = drpc.clear_activity() {
-                eprintln!("Failed to clear activity: {}", why);
+                eprintln!("Failed to clear activity: {why:?}");
             };
 
             mpd = idle(&config.hosts).await;
@@ -136,7 +136,7 @@ async fn replace_tokens(
     let mut compiled_string = format_string.to_string();
     for token in tokens {
         let value = mpd_conn::get_token_value(mpd, song, token).await;
-        compiled_string = compiled_string.replace(format!("${}", token).as_str(), value.as_str());
+        compiled_string = compiled_string.replace(format!("${token}").as_str(), value.as_str());
     }
     compiled_string
 }
