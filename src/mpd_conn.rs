@@ -1,63 +1,8 @@
-use std::path::PathBuf;
-use std::time::{SystemTime, UNIX_EPOCH};
-use tokio::net::{TcpStream, UnixStream};
-
 use crate::config::TimestampMode;
 use discord_rpc_client::models::ActivityTimestamps;
-use mpd_client::client::Connection;
-use mpd_client::protocol::MpdProtocolError;
-use mpd_client::responses::{PlayState, Song, Status};
+use mpd_client::responses::{Song, Status};
 use mpd_client::tag::Tag;
-use mpd_client::{commands, Client as MPDClient};
-use std::os::unix::fs::FileTypeExt;
-
-/// Cycles through each MPD host and
-/// returns the first one which is playing,
-/// or none if one is not found.
-pub async fn try_get_mpd_conn(hosts: &[String]) -> Option<MPDClient> {
-    for host in hosts {
-        let connection = if is_unix_socket(host) {
-            connect_unix(host).await
-        } else {
-            connect_tcp(host).await
-        };
-
-        match connection {
-            Ok(conn) => {
-                let client = conn.0;
-                let state = get_status(&client).await.state;
-                if state == PlayState::Playing {
-                    return Some(client);
-                }
-            }
-            Err(why) => eprintln!("Error connecting to {host}: {why:?}"),
-        }
-    }
-
-    None
-}
-
-fn is_unix_socket(host: &String) -> bool {
-    let path = PathBuf::from(host);
-    path.exists()
-        && path
-            .metadata()
-            .map_or(false, |metadata| metadata.file_type().is_socket())
-}
-
-async fn connect_unix(host: &String) -> Result<Connection, MpdProtocolError> {
-    let connection = UnixStream::connect(host)
-        .await
-        .unwrap_or_else(|_| panic!("Error connecting to unix socket: {host}"));
-    MPDClient::connect(connection).await
-}
-
-async fn connect_tcp(host: &String) -> Result<Connection, MpdProtocolError> {
-    let connection = TcpStream::connect(host)
-        .await
-        .unwrap_or_else(|_| panic!("Error connecting to unix socket: {host}"));
-    MPDClient::connect(connection).await
-}
+use std::time::{SystemTime, UNIX_EPOCH};
 
 /// Formats a duration given in seconds
 /// in hh:mm format
@@ -70,7 +15,7 @@ fn format_time(time: u64) -> String {
 
 /// Converts a string format token value
 /// into its respective MPD value.
-pub async fn get_token_value(client: &mut MPDClient, song: &Song, token: &str) -> String {
+pub fn get_token_value(song: &Song, status: &Status, token: &str) -> String {
     match token {
         "title" => song.title(),
         "album" => try_get_first_tag(song.tags.get(&Tag::Album)),
@@ -79,8 +24,8 @@ pub async fn get_token_value(client: &mut MPDClient, song: &Song, token: &str) -
         "disc" => try_get_first_tag(song.tags.get(&Tag::Disc)),
         "genre" => try_get_first_tag(song.tags.get(&Tag::Genre)),
         "track" => try_get_first_tag(song.tags.get(&Tag::Track)),
-        "duration" => return format_time(get_duration(&get_status(client).await)),
-        "elapsed" => return format_time(get_elapsed(&get_status(client).await)),
+        "duration" => return format_time(get_duration(status)),
+        "elapsed" => return format_time(get_elapsed(status)),
         _ => Some(token),
     }
     .unwrap_or("unknown")
@@ -88,21 +33,19 @@ pub async fn get_token_value(client: &mut MPDClient, song: &Song, token: &str) -
 }
 
 /// Gets the activity timestamp based off the current song elapsed/remaining
-pub async fn get_timestamp(client: &mut MPDClient, mode: TimestampMode) -> ActivityTimestamps {
+pub fn get_timestamp(status: &Status, mode: TimestampMode) -> ActivityTimestamps {
     let current_time = SystemTime::now()
         .duration_since(UNIX_EPOCH)
-        .unwrap()
+        .expect("Failed to get system time")
         .as_secs();
 
-    let status = get_status(client).await;
-
-    let elapsed = get_elapsed(&status);
+    let elapsed = get_elapsed(status);
 
     let timestamps = ActivityTimestamps::new();
 
     match mode {
         TimestampMode::Left => {
-            let duration = get_duration(&status);
+            let duration = get_duration(status);
 
             let remaining = duration - elapsed;
             timestamps.end(current_time + remaining)
@@ -110,15 +53,6 @@ pub async fn get_timestamp(client: &mut MPDClient, mode: TimestampMode) -> Activ
         TimestampMode::Off => timestamps,
         TimestampMode::Elapsed => timestamps.start(current_time - elapsed),
     }
-}
-
-/// Gets MPD server status.
-/// Panics on error.
-pub async fn get_status(client: &MPDClient) -> Status {
-    client
-        .command(commands::Status)
-        .await
-        .expect("Failed to get MPD server status")
 }
 
 /// Attempts to read the first value for a tag

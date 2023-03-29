@@ -19,6 +19,9 @@ serde = { version = "1.0.137", features = ["derive"] }
 reqwest = { version = "0.11.11", features = ["json"] }
 tokio = { version = "1.16.1", features = ["rt-multi-thread"] }
 universal-config = { version = "0.3.0", default-features = false, features = ["toml"] }
+mpd-utils = "0.1.0"
+tracing = "0.1.37"
+tracing-subscriber = "0.3.16"
 
 [patch.crates-io]
 discord-rpc-client = { git = "https://github.com/JakeStanger/discord-rpc-client.rs" }
