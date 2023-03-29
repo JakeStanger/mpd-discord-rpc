@@ -1,6 +1,6 @@
 [package]
 name = "mpd-discord-rpc"
-version = "1.5.4"
+version = "1.6.0"
 authors = ["Jake Stanger <mail@jstanger.dev>"]
 edition = "2021"
 description = "Displays your currently playing song / album / artist from MPD in Discord using Rich Presence."
