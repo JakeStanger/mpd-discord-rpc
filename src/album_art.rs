@@ -128,7 +128,8 @@ impl AlbumArtClient {
 
     fn get_cache_key(song: &Song) -> Option<(String, String)> {
         let tags = &song.tags;
-        let artist = try_get_first_tag(tags.get(&Tag::Artist));
+        let artist = try_get_first_tag(tags.get(&Tag::AlbumArtist))
+            .or(try_get_first_tag(tags.get(&Tag::Artist)));
         let album = try_get_first_tag(tags.get(&Tag::Album));
 
         match (artist, album) {

@@ -20,6 +20,7 @@ pub fn get_token_value(song: &Song, status: &Status, token: &str) -> String {
         "title" => song.title(),
         "album" => try_get_first_tag(song.tags.get(&Tag::Album)),
         "artist" => try_get_first_tag(song.tags.get(&Tag::Artist)),
+        "albumartist" => try_get_first_tag(song.tags.get(&Tag::AlbumArtist)),
         "date" => try_get_first_tag(song.tags.get(&Tag::Date)),
         "disc" => try_get_first_tag(song.tags.get(&Tag::Disc)),
         "genre" => try_get_first_tag(song.tags.get(&Tag::Genre)),

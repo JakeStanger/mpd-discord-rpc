@@ -66,6 +66,7 @@ The following will automatically be replaced with their value from MPD:
 - `$title`
 - `$album`
 - `$artist`
+- `$albumartist`
 - `$date`
 - `$track`
 - `$disc`
