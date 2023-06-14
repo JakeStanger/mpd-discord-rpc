@@ -32,6 +32,12 @@ The AUR package can be found [here](https://aur.archlinux.org/packages/mpd-disco
 yay -S mpd-discord-rpc-git
 ```
 
+The systemd unit is included and can be started with:
+
+```
+systemctl --user enable --now mpd-discord-rpc 
+```
+
 ### NixOS
 
 You can use the [`mpd-discord-rpc`](https://search.nixos.org/packages?channel=unstable&show=mpd-discord-rpc&from=0&size=50&sort=relevance&type=packages&query=mpd-discord-rpc) package in nixpkgs. Users of home-manager can also use the [`services.mpd-discord-rpc.enable`](https://github.com/nix-community/home-manager/blob/master/modules/services/mpd-discord-rpc.nix) option.
