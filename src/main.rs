@@ -1,6 +1,7 @@
+use std::process::exit;
 use std::time::Duration;
 
-use discord_rpc_client::{Client as DiscordClient, Client};
+use discord_presence::{Client as DiscordClient, Client, Event};
 use mpd_client::responses::{PlayState, Song, Status};
 use mpd_utils::MultiHostClient;
 use regex::Regex;
@@ -39,6 +40,11 @@ async fn main() {
 
     let mut service = Service::new(&config, tokens);
 
+    if let Err(err) = service.start() {
+        error!("{err:?}");
+        exit(1)
+    }
+
     let status = mpd.status().await;
     match status {
         Ok(status) => service.update_state(&mpd, &status).await,
@@ -73,9 +79,7 @@ struct Service<'a> {
 
 impl<'a> Service<'a> {
     fn new(config: &'a Config, tokens: Tokens) -> Self {
-        let mut drpc = DiscordClient::new(config.id);
-
-        drpc.start();
+        let drpc = DiscordClient::new(config.id);
 
         let album_art_client = AlbumArtClient::new();
         Self {
@@ -84,6 +88,11 @@ impl<'a> Service<'a> {
             drpc,
             tokens,
         }
+    }
+
+    fn start(&mut self) -> discord_presence::Result<()> {
+        let _ = self.drpc.start();
+        self.drpc.block_until_event(Event::Ready).map(|_| ())
     }
 
     async fn update_state(&mut self, mpd: &MultiHostClient<'a>, status: &Status) {

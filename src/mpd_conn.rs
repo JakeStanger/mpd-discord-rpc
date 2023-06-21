@@ -1,5 +1,5 @@
 use crate::config::TimestampMode;
-use discord_rpc_client::models::ActivityTimestamps;
+use discord_presence::models::ActivityTimestamps;
 use mpd_client::responses::{Song, Status};
 use mpd_client::tag::Tag;
 use std::time::{SystemTime, UNIX_EPOCH};
