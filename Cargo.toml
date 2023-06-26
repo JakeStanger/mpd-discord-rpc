@@ -13,7 +13,7 @@ keywords = ["mpd", "discord", "rpc", "music", "mopidy"]
 discord-presence = "0.5"
 mpd_client = "1.1.0"
 dirs = "5.0.1"
-toml = "0.7.4"
+toml = "0.7.5"
 regex = "1.8.4"
 serde = { version = "1.0.164", features = ["derive"] }
 reqwest = { version = "0.11.18", features = ["json"] }
