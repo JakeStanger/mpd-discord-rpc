@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.7.1] - 2023-07-09
+### :recycle: Refactors
+- [`36ac27f`](https://github.com/JakeStanger/mpd-discord-rpc/commit/36ac27f7e4a4ad5f6961ab8f7932fcfa03991323) - use `discord_presence` crate *(commit by [@JakeStanger](https://github.com/JakeStanger))*
+
+### :memo: Documentation Changes
+- [`4bf1415`](https://github.com/JakeStanger/mpd-discord-rpc/commit/4bf1415a7648c21754e0bc2ab2c3125f983fbb37) - **readme**: add systemd unit info *(commit by [@JakeStanger](https://github.com/JakeStanger))*
+
+
 ## [v1.7.0] - 2023-06-14
 ### :sparkles: New Features
 - [`23791be`](https://github.com/JakeStanger/mpd-discord-rpc/commit/23791be7ad5f33a92e15d3d142aef2e325ecf6a4) - support for album artist tags *(PR [#41](https://github.com/JakeStanger/mpd-discord-rpc/pull/41) by [@derinsh](https://github.com/derinsh))*
@@ -23,3 +31,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 [v1.6.0]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.5.4b...v1.6.0
 [v1.7.0]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.6.0...v1.7.0
+[v1.7.1]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.7.0...v1.7.1
