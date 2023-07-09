@@ -1428,9 +1428,9 @@ dependencies = [
 
 [[package]]
 name = "universal-config"
-version = "0.4.1"
+version = "0.4.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "23a92582af2bb8ffac1958db4de6fc821529c673a16319d70fa1cebabf572426"
+checksum = "bfede7e084d97dec87efe3cee5712ec22d97edc5bc73e61337e8914e33fd425e"
 dependencies = [
  "dirs",
  "serde",
