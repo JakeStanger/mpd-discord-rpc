@@ -1,10 +1,11 @@
-use std::process::exit;
 use std::time::Duration;
 
-use discord_presence::{Client as DiscordClient, Client, Event};
+use discord_presence::Client as DiscordClient;
 use mpd_client::responses::{PlayState, Song, Status};
 use mpd_utils::MultiHostClient;
 use regex::Regex;
+use tokio::sync::mpsc;
+use tokio::time::sleep;
 use tracing::{debug, error, info};
 
 use crate::album_art::AlbumArtClient;
@@ -38,27 +39,41 @@ async fn main() {
     let mut mpd = MultiHostClient::new(&hosts, Duration::from_secs(IDLE_TIME));
     mpd.init();
 
-    let mut service = Service::new(&config, tokens);
+    let (tx, mut rx) = mpsc::channel(16);
+    let mut service = Service::new(&config, tokens, tx);
+    service.start();
 
-    if let Err(err) = service.start() {
-        error!("{err:?}");
-        exit(1)
-    }
+    loop {
+        tokio::select! {
+            Some(event) = mpd.recv() => {
+                info!("Detected change, updating status");
+                debug!("Change: {event:?}");
 
-    let status = mpd.status().await;
-    match status {
-        Ok(status) => service.update_state(&mpd, &status).await,
-        Err(err) => eprintln!("{err:?}"),
-    }
+                let status = mpd.status().await;
+                match status {
+                    Ok(status) => service.update_state(&mpd, &status).await,
+                    Err(err) => error!("{err:?}"),
+                }
+            }
+            Some(event) = rx.recv() => {
+                match event {
+                    ServiceEvent::Ready => {
+                        info!("Connected to Discord");
 
-    while let Some(event) = mpd.recv().await {
-        info!("Detected change, updating status");
-        debug!("Change: {event:?}");
-
-        let status = mpd.status().await;
-        match status {
-            Ok(status) => service.update_state(&mpd, &status).await,
-            Err(err) => eprintln!("{err:?}"),
+                        // set initial status as soon as ready
+                        let status = mpd.status().await;
+                        match status {
+                            Ok(status) => service.update_state(&mpd, &status).await,
+                            Err(err) => error!("{err:?}"),
+                        }
+                    },
+                    ServiceEvent::Error(err) => {
+                        error!("{err}");
+                        sleep(Duration::from_secs(5)).await;
+                        service.start();
+                    }
+                }
+            },
         }
     }
 }
@@ -70,16 +85,43 @@ struct Tokens {
     small_text: Vec<String>,
 }
 
+enum ServiceEvent {
+    Ready,
+    Error(String),
+}
+
 struct Service<'a> {
     config: &'a Config,
     album_art_client: AlbumArtClient,
-    drpc: Client,
+    drpc: DiscordClient,
     tokens: Tokens,
 }
 
 impl<'a> Service<'a> {
-    fn new(config: &'a Config, tokens: Tokens) -> Self {
-        let drpc = DiscordClient::new(config.id);
+    fn new(config: &'a Config, tokens: Tokens, event_tx: mpsc::Sender<ServiceEvent>) -> Self {
+        let event_tx2 = event_tx.clone();
+
+        let mut drpc = DiscordClient::new(config.id);
+
+        drpc.on_ready(move |_| {
+            event_tx
+                .try_send(ServiceEvent::Ready)
+                .expect("channel to be open")
+        });
+
+        drpc.on_error(move |err| {
+            if err
+                .event
+                .get("error_message")
+                .and_then(|v| v.as_str())
+                .map(|str| str == "Io Error")
+                .unwrap_or_default()
+            {
+                event_tx2
+                    .try_send(ServiceEvent::Error(err.event.to_string()))
+                    .expect("channel to be open");
+            }
+        });
 
         let album_art_client = AlbumArtClient::new();
         Self {
@@ -90,9 +132,8 @@ impl<'a> Service<'a> {
         }
     }
 
-    fn start(&mut self) -> discord_presence::Result<()> {
-        let _ = self.drpc.start();
-        self.drpc.block_until_event(Event::Ready).map(|_| ())
+    fn start(&mut self) {
+        self.drpc.start()
     }
 
     async fn update_state(&mut self, mpd: &MultiHostClient<'a>, status: &Status) {
