@@ -25,8 +25,8 @@ pub fn get_token_value(song: &Song, status: &Status, token: &str) -> String {
         "disc" => try_get_first_tag(song.tags.get(&Tag::Disc)),
         "genre" => try_get_first_tag(song.tags.get(&Tag::Genre)),
         "track" => try_get_first_tag(song.tags.get(&Tag::Track)),
-        "duration" => return format_time(get_duration(status)),
-        "elapsed" => return format_time(get_elapsed(status)),
+        "duration" => return get_duration(status).map_or_else(|| String::from("N/A"), format_time),
+        "elapsed" => return get_elapsed(status).map_or_else(|| String::from("N/A"), format_time),
         _ => Some(token),
     }
     .unwrap_or("unknown")
@@ -40,13 +40,17 @@ pub fn get_timestamp(status: &Status, mode: TimestampMode) -> ActivityTimestamps
         .expect("Failed to get system time")
         .as_secs();
 
-    let elapsed = get_elapsed(status);
-
     let timestamps = ActivityTimestamps::new();
+
+    let Some(elapsed) = get_elapsed(status) else {
+        return timestamps;
+    };
 
     match mode {
         TimestampMode::Left => {
-            let duration = get_duration(status);
+            let Some(duration) = get_duration(status) else {
+                return timestamps;
+            };
 
             let remaining = duration - elapsed;
             timestamps.end(current_time + remaining)
@@ -63,17 +67,11 @@ pub fn try_get_first_tag(vec: Option<&Vec<String>>) -> Option<&str> {
 }
 
 /// Gets the duration of the current song
-fn get_duration(status: &Status) -> u64 {
-    status
-        .duration
-        .expect("Failed to get duration from MPD status")
-        .as_secs()
+fn get_duration(status: &Status) -> Option<u64> {
+    status.duration.map(|d| d.as_secs())
 }
 
 /// Gets the elapsed time of the current song
-fn get_elapsed(status: &Status) -> u64 {
-    status
-        .elapsed
-        .expect("Failed to get elapsed time from MPD status")
-        .as_secs()
+fn get_elapsed(status: &Status) -> Option<u64> {
+    status.elapsed.map(|e| e.as_secs())
 }
