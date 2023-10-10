@@ -106,14 +106,14 @@ impl<'a> Service<'a> {
         drpc.on_ready(move |_| {
             event_tx
                 .try_send(ServiceEvent::Ready)
-                .expect("channel to be open")
+                .expect("channel to be open");
         });
 
         drpc.on_error(move |err| {
             if err
                 .event
                 .get("error_message")
-                .and_then(|v| v.as_str())
+                .and_then(serde_json::value::Value::as_str)
                 .map(|str| str == "Io Error")
                 .unwrap_or_default()
             {
@@ -133,7 +133,7 @@ impl<'a> Service<'a> {
     }
 
     fn start(&mut self) {
-        self.drpc.start()
+        self.drpc.start();
     }
 
     async fn update_state(&mut self, mpd: &MultiHostClient<'a>, status: &Status) {
