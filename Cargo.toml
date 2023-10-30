@@ -11,7 +11,7 @@ keywords = ["mpd", "discord", "rpc", "music", "mopidy"]
 
 [dependencies]
 discord-presence = "0.5.18"
-mpd_client = "1.2.0"
+mpd_client = "1.3.0"
 dirs = "5.0.1"
 toml = "0.8.2"
 regex = "1.10.2"
