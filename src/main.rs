@@ -137,6 +137,9 @@ impl<'a> Service<'a> {
     }
 
     async fn update_state(&mut self, mpd: &MultiHostClient<'a>, status: &Status) {
+        // https://discord.com/developers/docs/rich-presence/how-to#updating-presence-update-presence-payload
+        const MAX_BYTES: usize = 128;
+
         let format = &self.config.format;
 
         if matches!(status.state, PlayState::Playing) {
@@ -144,8 +147,14 @@ impl<'a> Service<'a> {
             if let Ok(Some(song_in_queue)) = current_song {
                 let song = song_in_queue.song;
 
-                let details = replace_tokens(&format.details, &self.tokens.details, &song, status);
-                let state = replace_tokens(&format.state, &self.tokens.state, &song, status);
+                let details = clamp(
+                    replace_tokens(&format.details, &self.tokens.details, &song, status),
+                    MAX_BYTES,
+                );
+                let state = clamp(
+                    replace_tokens(&format.state, &self.tokens.state, &song, status),
+                    MAX_BYTES,
+                );
                 let large_text =
                     replace_tokens(&format.large_text, &self.tokens.large_text, &song, status);
                 let small_text =
@@ -213,4 +222,23 @@ fn replace_tokens(
         compiled_string = compiled_string.replace(format!("${token}").as_str(), value.as_str());
     }
     compiled_string
+}
+
+/// Clamps a string to a specified length (byte count).
+///
+/// If a string is longer than the max length,
+/// it is cut down and ellipses are added
+/// to make the byte count equal to or just below the max.
+fn clamp(mut str: String, len: usize) -> String {
+    const ELLIPSES_LEN: usize = 3;
+
+    if str.len() > len {
+        while str.len() > (len - ELLIPSES_LEN) {
+            str.pop();
+        }
+
+        str.push_str("...");
+    }
+
+    str
 }
