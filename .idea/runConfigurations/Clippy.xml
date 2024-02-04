@@ -1,7 +1,8 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Clippy" type="CargoCommandRunConfiguration" factoryName="Cargo Command">
-    <option name="command" value="clippy --  -W clippy::pedantic -W clippy::nursery -W clippy::unwrap_used" />
+    <option name="command" value="clippy --  -W clippy::pedantic -W clippy::unwrap_used" />
     <option name="workingDirectory" value="file://$PROJECT_DIR$" />
+    <envs />
     <option name="emulateTerminal" value="false" />
     <option name="channel" value="DEFAULT" />
     <option name="requiredFeatures" value="false" />
@@ -9,7 +10,6 @@
     <option name="withSudo" value="false" />
     <option name="buildTarget" value="REMOTE" />
     <option name="backtrace" value="SHORT" />
-    <envs />
     <option name="isRedirectInput" value="false" />
     <option name="redirectInputPath" value="" />
     <method v="2">
