@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.7.2] - 2024-03-15
+### :bug: Bug Fixes
+- [`bba3015`](https://github.com/JakeStanger/mpd-discord-rpc/commit/bba3015092bcc2ad82cb18e325ab734f051d4b95) - not retrying discord connection *(commit by [@JakeStanger](https://github.com/JakeStanger))*
+- [`558c3e1`](https://github.com/JakeStanger/mpd-discord-rpc/commit/558c3e19b0964a8165b1360763ff5d73f44a8c1f) - crashes when duration/elapsed missing *(commit by [@JakeStanger](https://github.com/JakeStanger))*
+- [`6e7d1e9`](https://github.com/JakeStanger/mpd-discord-rpc/commit/6e7d1e92a1fb3b8cec33ea86f674130be3c3a532) - error when setting activity with strings over 128 bytes *(commit by [@JakeStanger](https://github.com/JakeStanger))*
+
+### :recycle: Refactors
+- [`3b46dcc`](https://github.com/JakeStanger/mpd-discord-rpc/commit/3b46dcc6bb454ecc0a8da44aec2bb4e86ac3c7bf) - fix clippy warnings *(commit by [@JakeStanger](https://github.com/JakeStanger))*
+- [`a31e88d`](https://github.com/JakeStanger/mpd-discord-rpc/commit/a31e88d6da8754bac93f30c28659252061dfbbc8) - update dependencies to latest versions *(commit by [@JakeStanger](https://github.com/JakeStanger))*
+
+
 ## [v1.7.1] - 2023-07-09
 ### :recycle: Refactors
 - [`36ac27f`](https://github.com/JakeStanger/mpd-discord-rpc/commit/36ac27f7e4a4ad5f6961ab8f7932fcfa03991323) - use `discord_presence` crate *(commit by [@JakeStanger](https://github.com/JakeStanger))*
@@ -32,3 +43,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.6.0]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.5.4b...v1.6.0
 [v1.7.0]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.6.0...v1.7.0
 [v1.7.1]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.7.0...v1.7.1
+[v1.7.2]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.7.1...v1.7.2
