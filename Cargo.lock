@@ -633,7 +633,7 @@ dependencies = [
 
 [[package]]
 name = "mpd-discord-rpc"
-version = "1.7.1"
+version = "1.7.2"
 dependencies = [
  "dirs",
  "discord-presence",
