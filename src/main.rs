@@ -1,6 +1,7 @@
 use std::time::Duration;
 
-use discord_presence::Client as DiscordClient;
+use discord_presence::models::EventData;
+use discord_presence::{Client as DiscordClient, DiscordError};
 use mpd_client::responses::{PlayState, Song, Status};
 use mpd_utils::MultiHostClient;
 use regex::Regex;
@@ -35,8 +36,7 @@ async fn main() {
     };
 
     // MPD and Discord connections
-    let hosts = config.hosts.iter().map(String::as_str).collect::<Vec<_>>();
-    let mut mpd = MultiHostClient::new(&hosts, Duration::from_secs(IDLE_TIME));
+    let mut mpd = MultiHostClient::new(config.hosts.clone(), Duration::from_secs(IDLE_TIME));
     mpd.init();
 
     let (tx, mut rx) = mpsc::channel(16);
@@ -45,7 +45,7 @@ async fn main() {
 
     loop {
         tokio::select! {
-            Some(event) = mpd.recv() => {
+            Ok(event) = mpd.recv() => {
                 info!("Detected change, updating status");
                 debug!("Change: {event:?}");
 
@@ -101,27 +101,27 @@ impl<'a> Service<'a> {
     fn new(config: &'a Config, tokens: Tokens, event_tx: mpsc::Sender<ServiceEvent>) -> Self {
         let event_tx2 = event_tx.clone();
 
-        let mut drpc = DiscordClient::new(config.id);
+        let drpc = DiscordClient::new(config.id);
 
         drpc.on_ready(move |_| {
+            debug!("Discord RPC ready");
             event_tx
                 .try_send(ServiceEvent::Ready)
                 .expect("channel to be open");
-        });
+        })
+        .persist();
 
         drpc.on_error(move |err| {
-            if err
-                .event
-                .get("error_message")
-                .and_then(serde_json::value::Value::as_str)
-                .map(|str| str == "Io Error")
-                .unwrap_or_default()
-            {
-                event_tx2
-                    .try_send(ServiceEvent::Error(err.event.to_string()))
-                    .expect("channel to be open");
+            if let EventData::Error(err) = err.event {
+                let msg = err.message.unwrap_or_default();
+                if msg == "Io Err" {
+                    event_tx2
+                        .try_send(ServiceEvent::Error(msg))
+                        .expect("channel to be open");
+                }
             }
-        });
+        })
+        .persist();
 
         let album_art_client = AlbumArtClient::new();
         Self {
@@ -136,7 +136,7 @@ impl<'a> Service<'a> {
         self.drpc.start();
     }
 
-    async fn update_state(&mut self, mpd: &MultiHostClient<'a>, status: &Status) {
+    async fn update_state(&mut self, mpd: &MultiHostClient, status: &Status) {
         // https://discord.com/developers/docs/rich-presence/how-to#updating-presence-update-presence-payload
         const MAX_BYTES: usize = 128;
 
@@ -192,7 +192,12 @@ impl<'a> Service<'a> {
                 });
 
                 if let Err(why) = res {
-                    error!("Failed to set activity: {why:?}");
+                    // api returns a bogus error about missing buttons but succeeds anyway
+                    // so don't log it
+                    if !matches!(&why, DiscordError::JsonError(err) if err.to_string().starts_with("missing field `buttons`"))
+                    {
+                        error!("Failed to set activity: {why:?}");
+                    }
                 };
             }
         } else if let Err(why) = self.drpc.clear_activity() {
