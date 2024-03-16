@@ -26,11 +26,10 @@ cargo install mpd-discord-rpc
 
 ### Arch Linux
 
-The AUR package can be found [here](https://aur.archlinux.org/packages/mpd-discord-rpc-git).
+Two AUR packages are available:
 
-```
-yay -S mpd-discord-rpc-git
-```
+- [mpd-discord-rpc](https://aur.archlinux.org/packages/mpd-discord-rpc)
+- [mpd-discord-rpc-git](https://aur.archlinux.org/packages/mpd-discord-rpc-git)
 
 The systemd unit is included and can be started with:
 
