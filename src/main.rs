@@ -2,7 +2,10 @@ use std::time::Duration;
 
 use discord_presence::models::EventData;
 use discord_presence::{Client as DiscordClient, DiscordError};
-use mpd_client::responses::{PlayState, Song, Status};
+use mpd_client::client::ConnectionEvent::SubsystemChange;
+use mpd_client::client::Subsystem;
+use mpd_client::commands;
+use mpd_client::responses::{PlayState, Song, SongInQueue, Status};
 use mpd_utils::MultiHostClient;
 use regex::Regex;
 use tokio::sync::mpsc;
@@ -46,13 +49,23 @@ async fn main() {
     loop {
         tokio::select! {
             Ok(event) = mpd.recv() => {
-                info!("Detected change, updating status");
-                debug!("Change: {event:?}");
+                if matches!(*event, SubsystemChange(Subsystem::Player | Subsystem::Queue)) {
+                    info!("Detected change, updating status");
+                    debug!("Change: {event:?}");
 
-                let status = mpd.status().await;
-                match status {
-                    Ok(status) => service.update_state(&mpd, &status).await,
-                    Err(err) => error!("{err:?}"),
+                    if let Ok((Some(status), current_song)) = mpd.with_client(|client| async move {
+                            let status = client.command(commands::Status).await.ok();
+
+                            let current_song = if status.is_some() {
+                                client.command(commands::CurrentSong).await.ok().flatten()
+                            } else {
+                                None
+                            };
+
+                            (status, current_song)
+                        }).await {
+                        service.update_state(&status, current_song).await;
+                    }
                 }
             }
             Some(event) = rx.recv() => {
@@ -61,15 +74,23 @@ async fn main() {
                         info!("Connected to Discord");
 
                         // set initial status as soon as ready
-                        let status = mpd.status().await;
-                        match status {
-                            Ok(status) => service.update_state(&mpd, &status).await,
-                            Err(err) => error!("{err:?}"),
-                        }
+                        if let Ok((Some(status), current_song)) = mpd.with_client(|client| async move {
+                            let status = client.command(commands::Status).await.ok();
+
+                            let current_song = if status.is_some() {
+                                client.command(commands::CurrentSong).await.ok().flatten()
+                            } else {
+                                None
+                            };
+
+                            (status, current_song)
+                        }).await {
+                        service.update_state(&status, current_song).await;
+                    }
                     },
                     ServiceEvent::Error(err) => {
                         error!("{err}");
-                        sleep(Duration::from_secs(5)).await;
+                        sleep(Duration::from_secs(IDLE_TIME)).await;
                         service.start();
                     }
                 }
@@ -136,15 +157,14 @@ impl<'a> Service<'a> {
         self.drpc.start();
     }
 
-    async fn update_state(&mut self, mpd: &MultiHostClient, status: &Status) {
+    async fn update_state(&mut self, status: &Status, current_song: Option<SongInQueue>) {
         // https://discord.com/developers/docs/rich-presence/how-to#updating-presence-update-presence-payload
         const MAX_BYTES: usize = 128;
 
         let format = &self.config.format;
 
         if matches!(status.state, PlayState::Playing) {
-            let current_song = mpd.current_song().await;
-            if let Ok(Some(song_in_queue)) = current_song {
+            if let Some(song_in_queue) = current_song {
                 let song = song_in_queue.song;
 
                 let details = clamp(
