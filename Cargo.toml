@@ -18,7 +18,7 @@ regex = "1.10.4"
 serde = { version = "1.0.203", features = ["derive"] }
 serde_json = "1.0.117"
 reqwest = { version = "0.12.4", features = ["json"] }
-tokio = { version = "1.37.0", features = ["rt-multi-thread"] }
+tokio = { version = "1.38.0", features = ["rt-multi-thread"] }
 universal-config = { version = "0.5.0", default-features = false, features = ["toml"] }
 mpd-utils = "0.2.1"
 tracing = "0.1.40"
