@@ -4,6 +4,14 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.7.3] - 2024-06-13
+### :recycle: Refactors
+- [`9e153e4`](https://github.com/JakeStanger/mpd-discord-rpc/commit/9e153e4c2efb453c8ef22f2f94e1804fee88d6e5) - reduce calls to mpd server *(commit by [@JakeStanger](https://github.com/JakeStanger))*
+
+### :memo: Documentation Changes
+- [`0fd70aa`](https://github.com/JakeStanger/mpd-discord-rpc/commit/0fd70aa776906e44eba1e686d9f64d944e18efd0) - **readme**: update arch packages *(commit by [@JakeStanger](https://github.com/JakeStanger))*
+
+
 ## [v1.7.2] - 2024-03-15
 ### :bug: Bug Fixes
 - [`bba3015`](https://github.com/JakeStanger/mpd-discord-rpc/commit/bba3015092bcc2ad82cb18e325ab734f051d4b95) - not retrying discord connection *(commit by [@JakeStanger](https://github.com/JakeStanger))*
@@ -44,3 +52,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.7.0]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.6.0...v1.7.0
 [v1.7.1]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.7.0...v1.7.1
 [v1.7.2]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.7.1...v1.7.2
+[v1.7.3]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.7.2...v1.7.3
