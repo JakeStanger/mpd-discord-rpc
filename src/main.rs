@@ -1,5 +1,6 @@
 use std::time::Duration;
 
+use discord_presence::models::ActivityType;
 use discord_presence::models::EventData;
 use discord_presence::{Client as DiscordClient, DiscordError};
 use mpd_client::client::ConnectionEvent::SubsystemChange;
@@ -186,6 +187,7 @@ impl<'a> Service<'a> {
 
                 let res = self.drpc.set_activity(|act| {
                     act.state(state)
+                        ._type(ActivityType::Listening)
                         .details(details)
                         .assets(|mut assets| {
                             match url {
