@@ -10,7 +10,7 @@ readme = "README.md"
 keywords = ["mpd", "discord", "rpc", "music", "mopidy"]
 
 [dependencies]
-discord-presence = {version = "1.4.0", features = ["activity_type"]}
+discord-presence = {version = "1.4.1", features = ["activity_type"]}
 mpd_client = "1.4.1"
 dirs = "5.0.1"
 toml = "0.8.19"
