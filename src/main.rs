@@ -149,11 +149,10 @@ impl<'a> Service<'a> {
         .persist();
 
         drpc.on_error(move |err| {
-            println!("{err:?}");
             if let EventData::Error(err) = err.event {
+                error!("{err:?}");
                 let msg = err.message.unwrap_or_default();
                 if msg.to_lowercase().starts_with("io err") {
-                    println!("JDFJDFJDF");
                     event_tx3
                         .try_send(ServiceEvent::Error(msg))
                         .expect("channel to be open");
