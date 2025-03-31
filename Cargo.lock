@@ -192,16 +192,15 @@ dependencies = [
 
 [[package]]
 name = "discord-presence"
-version = "1.5.0"
+version = "1.5.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d3869559aec2ff5128b1bd18861692eba34b6f42265368dfde7ea0e802956dc8"
+checksum = "806b031712b2d07bb83d077c1d66d1d7c4209e2b812cb5d35a6aadfc2670f91f"
 dependencies = [
  "byteorder",
  "bytes",
  "cfg-if",
  "crossbeam-channel",
  "log",
- "named_pipe",
  "num-derive",
  "num-traits",
  "parking_lot",
@@ -855,15 +854,6 @@ dependencies = [
  "nom",
  "tokio",
  "tracing",
-]
-
-[[package]]
-name = "named_pipe"
-version = "0.4.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad9c443cce91fc3e12f017290db75dde490d685cdaaf508d7159d7cf41f0eb2b"
-dependencies = [
- "winapi",
 ]
 
 [[package]]
