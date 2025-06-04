@@ -8,11 +8,12 @@ pub enum TimestampMode {
     Elapsed,
     Left,
     Off,
+    Both,
 }
 
 impl Default for TimestampMode {
     fn default() -> Self {
-        Self::Elapsed
+        Self::Both
     }
 }
 
