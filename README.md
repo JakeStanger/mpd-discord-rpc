@@ -57,7 +57,7 @@ Running the program once will generate a default configuration file. On Linux th
         This is the artist / album by default.
     - **timestamp** - The timestamp mode for the third line. 
         This is 'elapsed' by default.
-        Can be one of `elapsed`, `left` or `off`. Falls back to `elapsed`.
+        Can be one of `both`, `elapsed`, `left` or `off`. Falls back to `both`.
     - **large_image** - The name of the rich presence asset that gets displayed as the large image. This is `"notes"` by default. Setting this to `""` disables the large image.
     - **small_image** - The name of the rich presence asset that gets displayed as the small image. This is `"notes"` by default. Setting this to `""` disables the small image.
     - **large_text** - A format string that is displayed upon hovering the large image. Setting this to `""` disables the hover.
@@ -91,7 +91,7 @@ hosts = ["localhost:6600"]
 [format]
 details = "$title"
 state = "$artist / $album"
-timestamp = "elapsed"
+timestamp = "both"
 large_image = "notes"
 small_image = "notes"
 large_text = ""

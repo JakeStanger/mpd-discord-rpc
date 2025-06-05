@@ -57,6 +57,14 @@ pub fn get_timestamp(status: &Status, mode: TimestampMode) -> ActivityTimestamps
         }
         TimestampMode::Off => timestamps,
         TimestampMode::Elapsed => timestamps.start(current_time - elapsed),
+        TimestampMode::Both => {
+            let Some(duration) = get_duration(status) else {
+                return timestamps;
+            };
+            let start_timestamp = current_time - elapsed;
+            let end_timestamp = start_timestamp + duration;
+            timestamps.start(start_timestamp).end(end_timestamp)
+        }
     }
 }
 
