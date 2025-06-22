@@ -21,7 +21,7 @@ mod album_art;
 mod config;
 mod mpd_conn;
 
-pub const IDLE_TIME: u64 = 5;
+pub const IDLE_TIME: u64 = 3;
 
 struct Tokens {
     details: Vec<String>,
