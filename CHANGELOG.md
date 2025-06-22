@@ -4,6 +4,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.8.1] - 2025-06-22
+### :sparkles: New Features
+- [`0697293`](https://github.com/JakeStanger/mpd-discord-rpc/commit/0697293b2315cc7cee08ec0fb0d8a1e264d59517) - timestamp "both" mode, progress bar *(commit by [@fxzzi](https://github.com/fxzzi))*
+
+### :bug: Bug Fixes
+- [`f395b30`](https://github.com/JakeStanger/mpd-discord-rpc/commit/f395b30f75a51a9d8ec131981f170e31f15f7313) - error if song title is one char long *(commit by [@JakeStanger](https://github.com/JakeStanger))*
+- [`865621c`](https://github.com/JakeStanger/mpd-discord-rpc/commit/865621c3a221dca9a7db231a51811b3c413bbd65) - not sending ready event on connect *(commit by [@JakeStanger](https://github.com/JakeStanger))*
+
+### :recycle: Refactors
+- [`e759103`](https://github.com/JakeStanger/mpd-discord-rpc/commit/e7591037792cb6db220d46afa0076319ce3820f6) - reduce idle check time to 3 seconds *(commit by [@JakeStanger](https://github.com/JakeStanger))*
+
+
 ## [v1.8.0] - 2025-02-13
 ### :sparkles: New Features
 - [`07eec2b`](https://github.com/JakeStanger/mpd-discord-rpc/commit/07eec2b699d0d52f6417ee88ed9c6a447258f345) - change status message from "playing" to "listening to" *(commit by [@JakeStanger](https://github.com/JakeStanger))*
@@ -62,3 +74,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.7.2]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.7.1...v1.7.2
 [v1.7.3]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.7.2...v1.7.3
 [v1.8.0]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.7.3...v1.8.0
+[v1.8.1]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.8.0...v1.8.1
