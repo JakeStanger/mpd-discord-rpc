@@ -23,6 +23,13 @@ mod mpd_conn;
 
 pub const IDLE_TIME: u64 = 5;
 
+struct Tokens {
+    details: Vec<String>,
+    state: Vec<String>,
+    large_text: Vec<String>,
+    small_text: Vec<String>,
+}
+
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt::init();
@@ -98,13 +105,6 @@ async fn main() {
             },
         }
     }
-}
-
-struct Tokens {
-    details: Vec<String>,
-    state: Vec<String>,
-    large_text: Vec<String>,
-    small_text: Vec<String>,
 }
 
 enum ServiceEvent {
@@ -185,7 +185,7 @@ impl<'a> Service<'a> {
             if let Some(song_in_queue) = current_song {
                 let song = song_in_queue.song;
 
-                let details = clamp(
+                let mut details = clamp(
                     replace_tokens(&format.details, &self.tokens.details, &song, status),
                     MAX_BYTES,
                 );
@@ -197,6 +197,11 @@ impl<'a> Service<'a> {
                     replace_tokens(&format.large_text, &self.tokens.large_text, &song, status);
                 let small_text =
                     replace_tokens(&format.small_text, &self.tokens.small_text, &song, status);
+
+                // discord requires details to be at least two characters
+                while details.chars().count() < 2 {
+                    details.push('_');
+                }
 
                 let timestamps = get_timestamp(status, format.timestamp);
 
@@ -214,7 +219,7 @@ impl<'a> Service<'a> {
                                         assets = assets.large_image(&format.large_image);
                                     }
                                 }
-                            };
+                            }
 
                             if !format.small_image.is_empty() {
                                 assets = assets.small_image(&format.small_image);
@@ -237,7 +242,7 @@ impl<'a> Service<'a> {
                     {
                         error!("Failed to set activity: {why:?}");
                     }
-                };
+                }
             }
         } else if let Err(why) = self.drpc.clear_activity() {
             error!("Failed to clear activity: {why:?}");
