@@ -1,8 +1,8 @@
 use crate::mpd_conn::try_get_first_tag;
 use mpd_client::responses::Song;
 use mpd_client::tag::Tag;
-use reqwest::header::{HeaderMap, HeaderValue};
 use reqwest::Client;
+use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};

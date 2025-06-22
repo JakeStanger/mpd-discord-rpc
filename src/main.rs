@@ -21,7 +21,14 @@ mod album_art;
 mod config;
 mod mpd_conn;
 
-pub const IDLE_TIME: u64 = 5;
+pub const IDLE_TIME: u64 = 3;
+
+struct Tokens {
+    details: Vec<String>,
+    state: Vec<String>,
+    large_text: Vec<String>,
+    small_text: Vec<String>,
+}
 
 #[tokio::main]
 async fn main() {
@@ -100,13 +107,6 @@ async fn main() {
     }
 }
 
-struct Tokens {
-    details: Vec<String>,
-    state: Vec<String>,
-    large_text: Vec<String>,
-    small_text: Vec<String>,
-}
-
 enum ServiceEvent {
     Ready,
     Error(String),
@@ -123,6 +123,7 @@ impl<'a> Service<'a> {
     fn new(config: &'a Config, tokens: Tokens, event_tx: mpsc::Sender<ServiceEvent>) -> Self {
         let event_tx2 = event_tx.clone();
         let event_tx3 = event_tx.clone();
+        let event_tx4 = event_tx.clone();
 
         let drpc = DiscordClient::new(config.id);
 
@@ -134,15 +135,18 @@ impl<'a> Service<'a> {
         })
         .persist();
 
-        drpc.on_connected(|_| {
+        drpc.on_connected(move |_| {
             info!("discord rpc connected");
+            event_tx2
+                .try_send(ServiceEvent::Ready)
+                .expect("channel to be open");
         })
         .persist();
 
         drpc.on_disconnected(move |_| {
             info!("discord rpc disconnected");
 
-            event_tx2
+            event_tx3
                 .try_send(ServiceEvent::Error("disconnected".to_string()))
                 .expect("channel to be open");
         })
@@ -153,7 +157,7 @@ impl<'a> Service<'a> {
                 error!("{err:?}");
                 let msg = err.message.unwrap_or_default();
                 if msg.to_lowercase().starts_with("io err") {
-                    event_tx3
+                    event_tx4
                         .try_send(ServiceEvent::Error(msg))
                         .expect("channel to be open");
                 }
@@ -185,7 +189,7 @@ impl<'a> Service<'a> {
             if let Some(song_in_queue) = current_song {
                 let song = song_in_queue.song;
 
-                let details = clamp(
+                let mut details = clamp(
                     replace_tokens(&format.details, &self.tokens.details, &song, status),
                     MAX_BYTES,
                 );
@@ -197,6 +201,11 @@ impl<'a> Service<'a> {
                     replace_tokens(&format.large_text, &self.tokens.large_text, &song, status);
                 let small_text =
                     replace_tokens(&format.small_text, &self.tokens.small_text, &song, status);
+
+                // discord requires details to be at least two characters
+                while details.chars().count() < 2 {
+                    details.push('_');
+                }
 
                 let timestamps = get_timestamp(status, format.timestamp);
 
@@ -214,7 +223,7 @@ impl<'a> Service<'a> {
                                         assets = assets.large_image(&format.large_image);
                                     }
                                 }
-                            };
+                            }
 
                             if !format.small_image.is_empty() {
                                 assets = assets.small_image(&format.small_image);
@@ -237,7 +246,7 @@ impl<'a> Service<'a> {
                     {
                         error!("Failed to set activity: {why:?}");
                     }
-                };
+                }
             }
         } else if let Err(why) = self.drpc.clear_activity() {
             error!("Failed to clear activity: {why:?}");
