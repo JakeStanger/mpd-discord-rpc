@@ -123,6 +123,7 @@ impl<'a> Service<'a> {
     fn new(config: &'a Config, tokens: Tokens, event_tx: mpsc::Sender<ServiceEvent>) -> Self {
         let event_tx2 = event_tx.clone();
         let event_tx3 = event_tx.clone();
+        let event_tx4 = event_tx.clone();
 
         let drpc = DiscordClient::new(config.id);
 
@@ -134,15 +135,18 @@ impl<'a> Service<'a> {
         })
         .persist();
 
-        drpc.on_connected(|_| {
+        drpc.on_connected(move |_| {
             info!("discord rpc connected");
+            event_tx2
+                .try_send(ServiceEvent::Ready)
+                .expect("channel to be open");
         })
         .persist();
 
         drpc.on_disconnected(move |_| {
             info!("discord rpc disconnected");
 
-            event_tx2
+            event_tx3
                 .try_send(ServiceEvent::Error("disconnected".to_string()))
                 .expect("channel to be open");
         })
@@ -153,7 +157,7 @@ impl<'a> Service<'a> {
                 error!("{err:?}");
                 let msg = err.message.unwrap_or_default();
                 if msg.to_lowercase().starts_with("io err") {
-                    event_tx3
+                    event_tx4
                         .try_send(ServiceEvent::Error(msg))
                         .expect("channel to be open");
                 }
