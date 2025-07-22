@@ -9,6 +9,14 @@ repository = "https://github.com/JakeStanger/mpd-discord-rpc"
 readme = "README.md"
 keywords = ["mpd", "discord", "rpc", "music", "mopidy"]
 
+[package.metadata.deb]
+assets = [
+    # Binary
+    { source = "target/release/mpd-discord-rpc", dest = "usr/bin/", mode = "755"},
+    # Systemd user service
+    { source = "mpd-discord-rpc.service", dest = "usr/lib/systemd/user/", mode = "644"}
+]
+
 [dependencies]
 discord-presence = { version = "1.6.0", features = ["activity_type"] }
 mpd_client = "1.4.1"
