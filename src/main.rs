@@ -10,7 +10,6 @@ use mpd_client::responses::{PlayState, Song, SongInQueue, Status};
 use mpd_utils::MultiHostClient;
 use regex::Regex;
 use tokio::sync::mpsc;
-use tokio::time::sleep;
 use tracing::{debug, error, info};
 
 use crate::album_art::AlbumArtClient;
@@ -96,11 +95,7 @@ async fn main() {
                         service.update_state(&status, current_song).await;
                     }
                     },
-                    ServiceEvent::Error(err) => {
-                        error!("{err}");
-                        sleep(Duration::from_secs(IDLE_TIME)).await;
-                        service.start();
-                    }
+                    ServiceEvent::Error(err) => error!("{err}"),
                 }
             },
         }
