@@ -213,7 +213,7 @@ impl<'a> Service<'a> {
 
                 let res = self.drpc.set_activity(|act| {
                     act.state(state)
-                        ._type(ActivityType::Listening)
+                        .activity_type(ActivityType::Listening)
                         .details(details)
                         .assets(|mut assets| {
                             match url {
