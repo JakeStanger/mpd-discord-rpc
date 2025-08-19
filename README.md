@@ -62,6 +62,8 @@ Running the program once will generate a default configuration file. On Linux th
     - **small_image** - The name of the rich presence asset that gets displayed as the small image. This is `"notes"` by default. Setting this to `""` disables the small image.
     - **large_text** - A format string that is displayed upon hovering the large image. Setting this to `""` disables the hover.
     - **small_text** - A format string that is displayed upon hovering the small image. Setting this to `""` disables the hover.
+    - **display_type** - The type of content to display in the status.
+        Can be one of `name`, `state` or `details`. Defaults to `state`.
 
 ### Formatting Tokens
 
@@ -96,6 +98,7 @@ large_image = "notes"
 small_image = "notes"
 large_text = ""
 small_text = ""
+display_type = "name"
 ```
 
 ## Album art
