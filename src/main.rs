@@ -62,16 +62,16 @@ async fn main() {
                     debug!("Change: {event:?}");
 
                     if let Ok((Some(status), current_song)) = mpd.with_client(|client| async move {
-                            let status = client.command(commands::Status).await.ok();
+                        let status = client.command(commands::Status).await.ok();
 
-                            let current_song = if status.is_some() {
-                                client.command(commands::CurrentSong).await.ok().flatten()
-                            } else {
-                                None
-                            };
+                        let current_song = if status.is_some() {
+                            client.command(commands::CurrentSong).await.ok().flatten()
+                        } else {
+                            None
+                        };
 
-                            (status, current_song)
-                        }).await {
+                        (status, current_song)
+                    }).await {
                         service.update_state(&status, current_song).await;
                     }
                 }
@@ -93,8 +93,8 @@ async fn main() {
 
                             (status, current_song)
                         }).await {
-                        service.update_state(&status, current_song).await;
-                    }
+                            service.update_state(&status, current_song).await;
+                        }
                     },
                     ServiceEvent::Error(err) => {
                         error!("{err}");
