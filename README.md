@@ -12,7 +12,7 @@ The program does not require MPD or Discord to be running in order to run.
 
 Once installed just run `mpd-discord-rpc`.
 
-![status image](https://user-images.githubusercontent.com/5057870/174365384-f8ce4aae-cd99-4177-9304-da757206015a.png)
+![status image](https://github.com/user-attachments/assets/797841f6-da4d-4f08-9fbe-026084acab8c)
 
 ## Installation
 
