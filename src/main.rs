@@ -211,9 +211,10 @@ impl<'a> Service<'a> {
                 let small_text =
                     replace_tokens(&format.small_text, &self.tokens.small_text, &song, status);
 
-                // discord requires details to be at least two characters
+                // discord requires details to be at least two characters. So extend it with
+                // zero-width spaces if it's too short. https://en.wikipedia.org/wiki/Zero-width_space
                 while details.chars().count() < 2 {
-                    details.push('_');
+                    details.push('\u{200B}');
                 }
 
                 let timestamps = get_timestamp(status, format.timestamp);
