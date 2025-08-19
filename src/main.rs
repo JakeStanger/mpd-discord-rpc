@@ -1,7 +1,7 @@
 use std::time::Duration;
 
-use discord_presence::models::ActivityType;
 use discord_presence::models::EventData;
+use discord_presence::models::{ActivityType, DisplayType};
 use discord_presence::{Client as DiscordClient, DiscordError};
 use mpd_client::client::ConnectionEvent::SubsystemChange;
 use mpd_client::client::Subsystem;
@@ -14,6 +14,7 @@ use tokio::time::sleep;
 use tracing::{debug, error, info};
 
 use crate::album_art::AlbumArtClient;
+use crate::config::DisplayType as ConfigDisplayType;
 use crate::mpd_conn::get_timestamp;
 use config::Config;
 
@@ -22,6 +23,14 @@ mod config;
 mod mpd_conn;
 
 pub const IDLE_TIME: u64 = 3;
+
+fn map_display_type(display_type: ConfigDisplayType) -> DisplayType {
+    match display_type {
+        ConfigDisplayType::Name => DisplayType::Name,
+        ConfigDisplayType::State => DisplayType::State,
+        ConfigDisplayType::Details => DisplayType::Details,
+    }
+}
 
 struct Tokens {
     details: Vec<String>,
@@ -211,10 +220,13 @@ impl<'a> Service<'a> {
 
                 let url = self.album_art_client.get_album_art_url(song).await;
 
+                let display_type = map_display_type(format.display_type);
+
                 let res = self.drpc.set_activity(|act| {
                     act.state(state)
                         .activity_type(ActivityType::Listening)
                         .details(details)
+                        .status_display(display_type)
                         .assets(|mut assets| {
                             match url {
                                 Some(url) => assets = assets.large_image(url),

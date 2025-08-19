@@ -17,6 +17,20 @@ impl Default for TimestampMode {
     }
 }
 
+#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
+#[serde(rename_all = "snake_case")]
+pub enum DisplayType {
+    Name,
+    State,
+    Details,
+}
+
+impl Default for DisplayType {
+    fn default() -> Self {
+        Self::State
+    }
+}
+
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Format {
     #[serde(default = "default_details_format")]
@@ -33,6 +47,8 @@ pub struct Format {
     pub large_text: String,
     #[serde(default)]
     pub small_text: String,
+    #[serde(default)]
+    pub display_type: DisplayType,
 }
 
 impl Default for Format {
@@ -45,6 +61,7 @@ impl Default for Format {
             small_image: default_image(),
             large_text: String::new(),
             small_text: String::new(),
+            display_type: DisplayType::default(),
         }
     }
 }
