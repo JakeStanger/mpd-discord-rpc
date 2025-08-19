@@ -125,7 +125,8 @@ impl<'a> Service<'a> {
         let event_tx3 = event_tx.clone();
         let event_tx4 = event_tx.clone();
 
-        let drpc = DiscordClient::new(config.id);
+        let drpc =
+            DiscordClient::with_error_config(config.id, Duration::from_secs(IDLE_TIME), Some(0));
 
         drpc.on_ready(move |_| {
             info!("discord rpc ready");
