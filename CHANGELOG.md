@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.9.0] - 2025-08-21
+### :sparkles: New Features
+- [`c0cb562`](https://github.com/JakeStanger/mpd-discord-rpc/commit/c0cb5625c818c4ebc827ed4460bfadd019a5d343) - allow configuring status display *(commit by [@fxzzi](https://github.com/fxzzi))*
+- [`7491c72`](https://github.com/JakeStanger/mpd-discord-rpc/commit/7491c72a7ce5e5eb689e3d4e267bae733e9bafd1) - nix packaging *(commit by [@fxzzi](https://github.com/fxzzi))*
+
+### :bug: Bug Fixes
+- [`a82faf0`](https://github.com/JakeStanger/mpd-discord-rpc/commit/a82faf0f12109536b78016ff3faace46b370929a) - create drpc client with error config *(commit by [@koffydrop](https://github.com/koffydrop))*
+- [`e50d778`](https://github.com/JakeStanger/mpd-discord-rpc/commit/e50d778b59abb3be836db9ef153f611313c28b08) - use empty char for extending details *(commit by [@fxzzi](https://github.com/fxzzi))*
+
+
 ## [v1.8.1] - 2025-06-22
 ### :sparkles: New Features
 - [`0697293`](https://github.com/JakeStanger/mpd-discord-rpc/commit/0697293b2315cc7cee08ec0fb0d8a1e264d59517) - timestamp "both" mode, progress bar *(commit by [@fxzzi](https://github.com/fxzzi))*
@@ -75,3 +85,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.7.3]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.7.2...v1.7.3
 [v1.8.0]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.7.3...v1.8.0
 [v1.8.1]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.8.0...v1.8.1
+[v1.9.0]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.8.1...v1.9.0
