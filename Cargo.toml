@@ -18,7 +18,7 @@ assets = [
 ]
 
 [dependencies]
-discord-presence = { version = "2.1.0" }
+discord-presence = { version = "3.0.0" }
 mpd_client = "1.4.1"
 regex = "1.12.2"
 serde = { version = "1.0.228", features = ["derive"] }
