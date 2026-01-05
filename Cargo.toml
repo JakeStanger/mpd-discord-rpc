@@ -22,7 +22,7 @@ discord-presence = { version = "3.1.0" }
 mpd_client = "1.4.1"
 regex = "1.12.2"
 serde = { version = "1.0.228", features = ["derive"] }
-reqwest = { version = "0.12.26", features = ["json"] }
+reqwest = { version = "0.13.1", features = ["json"] }
 tokio = { version = "1.49.0", features = ["rt-multi-thread"] }
 universal-config = { version = "0.5.1", default-features = false, features = ["toml", "save"] }
 mpd-utils = "0.2.1"
