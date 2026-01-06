@@ -2,33 +2,23 @@ use serde::{Deserialize, Serialize};
 use std::default::Default;
 use universal_config::ConfigLoader;
 
-#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Debug, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum TimestampMode {
     Elapsed,
     Left,
     Off,
+    #[default]
     Both,
 }
 
-impl Default for TimestampMode {
-    fn default() -> Self {
-        Self::Both
-    }
-}
-
-#[derive(Serialize, Deserialize, Copy, Clone, Debug)]
+#[derive(Serialize, Deserialize, Copy, Clone, Debug, Default)]
 #[serde(rename_all = "snake_case")]
 pub enum DisplayType {
     Name,
+    #[default]
     State,
     Details,
-}
-
-impl Default for DisplayType {
-    fn default() -> Self {
-        Self::State
-    }
 }
 
 #[derive(Serialize, Deserialize, Debug)]
