@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.10.0] - 2026-01-06
+### :sparkles: New Features
+- [`6de3816`](https://github.com/JakeStanger/mpd-discord-rpc/commit/6de38164f8b903f6ec17b19c4b607ce7f9f80a69) - add `originaldate` tag/formatting token *(commit by [@JakeStanger](https://github.com/JakeStanger))*
+
+### :bug: Bug Fixes
+- [`c0f6c6c`](https://github.com/JakeStanger/mpd-discord-rpc/commit/c0f6c6c629d8e86d2345126eb852dcd347fa2aca) - **systemd**: remove mpd requirement *(commit by [@JakeStanger](https://github.com/JakeStanger))*
+
+### :recycle: Refactors
+- [`bb0900b`](https://github.com/JakeStanger/mpd-discord-rpc/commit/bb0900bb0adf0bb7c1598ad66587c9b0004a5183) - fix new clippy warnings *(commit by [@JakeStanger](https://github.com/JakeStanger))*
+
+
 ## [v1.9.0] - 2025-08-21
 ### :sparkles: New Features
 - [`c0cb562`](https://github.com/JakeStanger/mpd-discord-rpc/commit/c0cb5625c818c4ebc827ed4460bfadd019a5d343) - allow configuring status display *(commit by [@fxzzi](https://github.com/fxzzi))*
@@ -86,3 +97,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.8.0]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.7.3...v1.8.0
 [v1.8.1]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.8.0...v1.8.1
 [v1.9.0]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.8.1...v1.9.0
+[v1.10.0]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.9.0...v1.10.0
