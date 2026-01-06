@@ -89,6 +89,7 @@ from MPD:
 - `$artist`
 - `$albumartist`
 - `$date`
+- `$originaldate`
 - `$track`
 - `$disc`
 - `$genre`
