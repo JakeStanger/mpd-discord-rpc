@@ -2,6 +2,7 @@ use std::time::Duration;
 
 use discord_presence::models::EventData;
 use discord_presence::models::{ActivityType, DisplayType};
+use discord_presence::models::ActivityButton;
 use discord_presence::{Client as DiscordClient, DiscordError};
 use mpd_client::client::ConnectionEvent::SubsystemChange;
 use mpd_client::client::Subsystem;
@@ -37,6 +38,8 @@ struct Tokens {
     state: Vec<String>,
     large_text: Vec<String>,
     small_text: Vec<String>,
+    button_text: Vec<String>,
+    button_link: Vec<String>,
 }
 
 #[tokio::main]
@@ -53,6 +56,8 @@ async fn main() {
         state: get_tokens(&re, &format.state),
         large_text: get_tokens(&re, &format.large_text),
         small_text: get_tokens(&re, &format.small_text),
+        button_text: get_tokens(&re, &format.button_text),
+        button_link: get_tokens(&re, &format.button_link),
     };
 
     // MPD and Discord connections
@@ -212,6 +217,11 @@ impl<'a> Service<'a> {
                 let small_text =
                     replace_tokens(&format.small_text, &self.tokens.small_text, &song, status);
 
+                let button_text =
+                    replace_tokens(&format.button_text, &self.tokens.button_text, &song, status);
+                let button_link =
+                    replace_tokens(&format.button_link, &self.tokens.button_link, &song, status);
+
                 // discord requires details to be at least two characters. So extend it with
                 // zero-width spaces if it's too short. https://en.wikipedia.org/wiki/Zero-width_space
                 while details.chars().count() < 2 {
@@ -225,7 +235,8 @@ impl<'a> Service<'a> {
                 let display_type = map_display_type(format.display_type);
 
                 let res = self.drpc.set_activity(|act| {
-                    act.state(state)
+                    let mut act = act
+                        .state(state)
                         .activity_type(ActivityType::Listening)
                         .details(details)
                         .status_display(display_type)
@@ -250,7 +261,17 @@ impl<'a> Service<'a> {
                             }
                             assets
                         })
-                        .timestamps(|_| timestamps)
+                        .timestamps(|_| timestamps);
+
+                    // add button only if enabled
+                    if format.button_enabled && !button_text.is_empty() && !button_link.is_empty() {
+                        act = act.append_buttons(|_| {
+                            ActivityButton::new()
+                                .label(button_text)
+                                .url(button_link)
+                        });
+                    }
+                    act
                 });
 
                 if let Err(why) = res {

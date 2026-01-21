@@ -39,6 +39,12 @@ pub struct Format {
     pub small_text: String,
     #[serde(default)]
     pub display_type: DisplayType,
+    #[serde(default)]
+    pub button_enabled: bool,
+    #[serde(default = "default_button_text_format")]
+    pub button_text: String,
+    #[serde(default = "default_button_link_format")]
+    pub button_link: String
 }
 
 impl Default for Format {
@@ -52,6 +58,9 @@ impl Default for Format {
             large_text: String::new(),
             small_text: String::new(),
             display_type: DisplayType::default(),
+            button_enabled: true,
+            button_text: default_button_text_format(),
+            button_link: default_button_link_format(),
         }
     }
 }
@@ -101,6 +110,14 @@ fn default_state_format() -> String {
 
 fn default_image() -> String {
     "notes".to_string()
+}
+
+fn default_button_text_format() -> String {
+    "Search on YouTube".to_string()
+}
+
+fn default_button_link_format() -> String {
+    "https://www.youtube.com/results?search_query=$artist - $title".to_string()
 }
 
 const fn default_discord_id() -> u64 {
