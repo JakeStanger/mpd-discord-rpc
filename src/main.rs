@@ -1,8 +1,8 @@
 use std::time::Duration;
 
+use discord_presence::models::ActivityButton;
 use discord_presence::models::EventData;
 use discord_presence::models::{ActivityType, DisplayType};
-use discord_presence::models::ActivityButton;
 use discord_presence::{Client as DiscordClient, DiscordError};
 use mpd_client::client::ConnectionEvent::SubsystemChange;
 use mpd_client::client::Subsystem;
@@ -38,8 +38,10 @@ struct Tokens {
     state: Vec<String>,
     large_text: Vec<String>,
     small_text: Vec<String>,
-    button_text: Vec<String>,
-    button_link: Vec<String>,
+    button1_text: Vec<String>,
+    button1_link: Vec<String>,
+    button2_text: Vec<String>,
+    button2_link: Vec<String>,
 }
 
 #[tokio::main]
@@ -56,8 +58,10 @@ async fn main() {
         state: get_tokens(&re, &format.state),
         large_text: get_tokens(&re, &format.large_text),
         small_text: get_tokens(&re, &format.small_text),
-        button_text: get_tokens(&re, &format.button_text),
-        button_link: get_tokens(&re, &format.button_link),
+        button1_text: get_tokens(&re, &format.button1_text),
+        button1_link: get_tokens(&re, &format.button1_link),
+        button2_text: get_tokens(&re, &format.button2_text),
+        button2_link: get_tokens(&re, &format.button2_link),
     };
 
     // MPD and Discord connections
@@ -217,10 +221,30 @@ impl<'a> Service<'a> {
                 let small_text =
                     replace_tokens(&format.small_text, &self.tokens.small_text, &song, status);
 
-                let button_text =
-                    replace_tokens(&format.button_text, &self.tokens.button_text, &song, status);
-                let button_link =
-                    replace_tokens(&format.button_link, &self.tokens.button_link, &song, status);
+                let button1_text = replace_tokens(
+                    &format.button1_text,
+                    &self.tokens.button1_text,
+                    &song,
+                    status,
+                );
+                let button1_link = replace_tokens(
+                    &format.button1_link,
+                    &self.tokens.button1_link,
+                    &song,
+                    status,
+                );
+                let button2_text = replace_tokens(
+                    &format.button2_text,
+                    &self.tokens.button2_text,
+                    &song,
+                    status,
+                );
+                let button2_link = replace_tokens(
+                    &format.button2_link,
+                    &self.tokens.button2_link,
+                    &song,
+                    status,
+                );
 
                 // discord requires details to be at least two characters. So extend it with
                 // zero-width spaces if it's too short. https://en.wikipedia.org/wiki/Zero-width_space
@@ -263,12 +287,15 @@ impl<'a> Service<'a> {
                         })
                         .timestamps(|_| timestamps);
 
-                    // add button only if enabled
-                    if format.button_enabled && !button_text.is_empty() && !button_link.is_empty() {
+                    // add buttons. This should suffice since only 2 are supported by Discord
+                    if !button1_text.is_empty() && !button1_link.is_empty() {
                         act = act.append_buttons(|_| {
-                            ActivityButton::new()
-                                .label(button_text)
-                                .url(button_link)
+                            ActivityButton::new().label(button1_text).url(button1_link)
+                        });
+                    }
+                    if !button2_text.is_empty() && !button2_link.is_empty() {
+                        act = act.append_buttons(|_| {
+                            ActivityButton::new().label(button2_text).url(button2_link)
                         });
                     }
                     act
