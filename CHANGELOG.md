@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.11.0] - 2026-01-24
+### :sparkles: New Features
+- [`828b94a`](https://github.com/JakeStanger/mpd-discord-rpc/commit/828b94a2fa2b05c97f466f361451c27817042084) - configurable activity button for searching active song on another platform *(commit by [@ReallyWeirdCat](https://github.com/ReallyWeirdCat))*
+
+### :recycle: Refactors
+- [`7ec612d`](https://github.com/JakeStanger/mpd-discord-rpc/commit/7ec612dcd8561de6500f9b59d35ea6c1d74f3693) - remove button_enabled parameter and implement support for two buttons *(commit by [@ReallyWeirdCat](https://github.com/ReallyWeirdCat))*
+
+### :memo: Documentation Changes
+- [`b1920e8`](https://github.com/JakeStanger/mpd-discord-rpc/commit/b1920e81df223ff590cd98c42a4e80681f97ae36) - update readme to document button configuration *(commit by [@ReallyWeirdCat](https://github.com/ReallyWeirdCat))*
+
+
 ## [v1.10.0] - 2026-01-06
 ### :sparkles: New Features
 - [`6de3816`](https://github.com/JakeStanger/mpd-discord-rpc/commit/6de38164f8b903f6ec17b19c4b607ce7f9f80a69) - add `originaldate` tag/formatting token *(commit by [@JakeStanger](https://github.com/JakeStanger))*
@@ -98,3 +109,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 [v1.8.1]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.8.0...v1.8.1
 [v1.9.0]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.8.1...v1.9.0
 [v1.10.0]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.9.0...v1.10.0
+[v1.11.0]: https://github.com/JakeStanger/mpd-discord-rpc/compare/v1.10.0...v1.11.0
