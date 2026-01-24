@@ -39,6 +39,14 @@ pub struct Format {
     pub small_text: String,
     #[serde(default)]
     pub display_type: DisplayType,
+    #[serde(default)]
+    pub button1_text: String,
+    #[serde(default)]
+    pub button1_link: String,
+    #[serde(default)]
+    pub button2_text: String,
+    #[serde(default)]
+    pub button2_link: String,
 }
 
 impl Default for Format {
@@ -52,6 +60,10 @@ impl Default for Format {
             large_text: String::new(),
             small_text: String::new(),
             display_type: DisplayType::default(),
+            button1_text: String::new(),
+            button1_link: String::new(),
+            button2_text: String::new(),
+            button2_link: String::new(),
         }
     }
 }

@@ -77,6 +77,10 @@ this will be at `~/.config/discord-rpc/config.toml`
     image. Setting this to `""` disables the hover.
   - **display_type** - The type of content to display in the status. Can be one
     of `name`, `state` or `details`. Defaults to `state`.
+  - **button1_text** - The label of the first button that is shown in activity.
+  - **button1_link** - The url of the first button.
+  - **button2_text** - The label of the second button that is shown in activity.
+  - **button2_link** - The url of the second button.
 
 ### Formatting Tokens
 
@@ -113,7 +117,11 @@ large_image = "notes"
 small_image = "notes"
 large_text = ""
 small_text = ""
-display_type = "name"
+display_type = "state"
+button1_text = ""
+button1_link = ""
+button2_text = ""
+button2_link = ""
 ```
 
 ## Album art
