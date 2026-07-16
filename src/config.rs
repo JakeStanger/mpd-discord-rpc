@@ -1,6 +1,36 @@
-use serde::{Deserialize, Serialize};
-use std::default::Default;
+use serde::{Deserialize, Deserializer, Serialize};
 use universal_config::ConfigLoader;
+
+#[derive(Serialize, Copy, Clone, Debug, Default, PartialEq, Eq)]
+#[serde(rename_all = "snake_case")]
+pub enum AlbumArtMode {
+    #[default]
+    Remote,
+    Local,
+    PreferLocal,
+    PreferRemote,
+    None,
+}
+
+impl<'de> Deserialize<'de> for AlbumArtMode {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        match s.as_str() {
+            "remote" => Ok(AlbumArtMode::Remote),
+            "local" => Ok(AlbumArtMode::Local),
+            "prefer_local" => Ok(AlbumArtMode::PreferLocal),
+            "prefer_remote" => Ok(AlbumArtMode::PreferRemote),
+            "none" => Ok(AlbumArtMode::None),
+            other => Err(serde::de::Error::custom(format!(
+                "unknown album_art mode: {}",
+                other
+            ))),
+        }
+    }
+}
 
 #[derive(Serialize, Deserialize, Copy, Clone, Debug, Default)]
 #[serde(rename_all = "snake_case")]
@@ -40,6 +70,8 @@ pub struct Format {
     #[serde(default)]
     pub display_type: DisplayType,
     #[serde(default)]
+    pub album_art: AlbumArtMode,
+    #[serde(default)]
     pub button1_text: String,
     #[serde(default)]
     pub button1_link: String,
@@ -60,6 +92,7 @@ impl Default for Format {
             large_text: String::new(),
             small_text: String::new(),
             display_type: DisplayType::default(),
+            album_art: AlbumArtMode::default(),
             button1_text: String::new(),
             button1_link: String::new(),
             button2_text: String::new(),
@@ -76,6 +109,8 @@ pub struct Config {
     pub hosts: Vec<String>,
     #[serde(default)]
     pub format: Format,
+    #[serde(default = "default_music_directory")]
+    pub music_directory: Option<String>,
 }
 
 impl Default for Config {
@@ -84,6 +119,7 @@ impl Default for Config {
             id: default_discord_id(),
             hosts: default_mpd_hosts(),
             format: Format::default(),
+            music_directory: default_music_directory(),
         }
     }
 }
@@ -93,13 +129,22 @@ impl Config {
         let loader =
             ConfigLoader::new("discord-rpc").with_formats(&[universal_config::Format::Toml]);
 
-        loader.find_and_load().unwrap_or_else(|_| {
+        let mut cfg = loader.find_and_load().unwrap_or_else(|_| {
             let cfg = Self::default();
             loader
                 .save(&cfg, &universal_config::Format::Toml)
                 .expect("Failed to create default config file");
             cfg
-        })
+        });
+
+        // Clean up empty music directory parameter
+        if let Some(ref s) = cfg.music_directory
+            && s.trim().is_empty()
+        {
+            cfg.music_directory = None;
+        }
+
+        cfg
     }
 }
 
@@ -121,4 +166,11 @@ const fn default_discord_id() -> u64 {
 
 fn default_mpd_hosts() -> Vec<String> {
     vec!["localhost:6600".to_string()]
+}
+
+fn default_music_directory() -> Option<String> {
+    dirs::home_dir()
+        .map(|home| home.join("Music").to_string_lossy().into_owned())
+        .map(Some)
+        .unwrap_or(None)
 }

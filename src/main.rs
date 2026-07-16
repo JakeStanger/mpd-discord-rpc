@@ -14,13 +14,14 @@ use tokio::sync::mpsc;
 use tokio::time::sleep;
 use tracing::{debug, error, info};
 
-use crate::album_art::AlbumArtClient;
+use crate::album_art::{AlbumArtClient, LocalArtClient};
 use crate::config::DisplayType as ConfigDisplayType;
 use crate::mpd_conn::get_timestamp;
 use config::Config;
 
 mod album_art;
 mod config;
+mod image_uploader;
 mod mpd_conn;
 
 pub const IDLE_TIME: u64 = 3;
@@ -132,7 +133,8 @@ enum ServiceEvent {
 
 struct Service<'a> {
     config: &'a Config,
-    album_art_client: AlbumArtClient,
+    remote_client: Option<AlbumArtClient>,
+    local_client: Option<LocalArtClient>,
     drpc: DiscordClient,
     tokens: Tokens,
 }
@@ -184,10 +186,25 @@ impl<'a> Service<'a> {
         })
         .persist();
 
-        let album_art_client = AlbumArtClient::new();
+        // Conditionally create clients based on config
+        let (remote_client, local_client) = match config.format.album_art {
+            config::AlbumArtMode::None => (None, None),
+            config::AlbumArtMode::Remote => (Some(AlbumArtClient::new()), None),
+            config::AlbumArtMode::Local => {
+                let local = LocalArtClient::new(config.music_directory.as_deref());
+                (None, Some(local))
+            }
+            config::AlbumArtMode::PreferLocal | config::AlbumArtMode::PreferRemote => {
+                let remote = Some(AlbumArtClient::new());
+                let local = LocalArtClient::new(config.music_directory.as_deref());
+                (remote, Some(local))
+            }
+        };
+
         Self {
             config,
-            album_art_client,
+            remote_client,
+            local_client,
             drpc,
             tokens,
         }
@@ -254,7 +271,52 @@ impl<'a> Service<'a> {
 
                 let timestamps = get_timestamp(status, format.timestamp);
 
-                let url = self.album_art_client.get_album_art_url(song).await;
+                // Album art selection based on config mode
+                let url = match format.album_art {
+                    config::AlbumArtMode::None => None,
+                    config::AlbumArtMode::Remote => {
+                        if let Some(client) = self.remote_client.as_mut() {
+                            client.get_album_art_url(song.clone()).await
+                        } else {
+                            None
+                        }
+                    }
+                    config::AlbumArtMode::Local => {
+                        if let Some(client) = self.local_client.as_mut() {
+                            client.get_album_art_url(song.clone()).await
+                        } else {
+                            None
+                        }
+                    }
+                    config::AlbumArtMode::PreferLocal => {
+                        let local_url = if let Some(client) = self.local_client.as_mut() {
+                            client.get_album_art_url(song.clone()).await
+                        } else {
+                            None
+                        };
+                        if local_url.is_some() {
+                            local_url
+                        } else if let Some(client) = self.remote_client.as_mut() {
+                            client.get_album_art_url(song).await
+                        } else {
+                            None
+                        }
+                    }
+                    config::AlbumArtMode::PreferRemote => {
+                        let remote_url = if let Some(client) = self.remote_client.as_mut() {
+                            client.get_album_art_url(song.clone()).await
+                        } else {
+                            None
+                        };
+                        if remote_url.is_some() {
+                            remote_url
+                        } else if let Some(client) = self.local_client.as_mut() {
+                            client.get_album_art_url(song).await
+                        } else {
+                            None
+                        }
+                    }
+                };
 
                 let display_type = map_display_type(format.display_type);
 
@@ -325,16 +387,11 @@ fn get_tokens(re: &Regex, format_string: &str) -> Vec<String> {
 
 /// Replaces each of the formatting tokens in the formatting string
 /// with actual data pulled from MPD
-fn replace_tokens(
-    format_string: &str,
-    tokens: &Vec<String>,
-    song: &Song,
-    status: &Status,
-) -> String {
+fn replace_tokens(format_string: &str, tokens: &[String], song: &Song, status: &Status) -> String {
     let mut compiled_string = format_string.to_string();
     for token in tokens {
         let value = mpd_conn::get_token_value(song, status, token);
-        compiled_string = compiled_string.replace(format!("${token}").as_str(), value.as_str());
+        compiled_string = compiled_string.replace(&format!("${token}"), &value);
     }
     compiled_string
 }

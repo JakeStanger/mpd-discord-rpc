@@ -1,3 +1,4 @@
+use crate::image_uploader::ImageUploader;
 use crate::mpd_conn::try_get_first_tag;
 use mpd_client::responses::Song;
 use mpd_client::tag::Tag;
@@ -6,6 +7,7 @@ use reqwest::header::{HeaderMap, HeaderValue};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
+use std::path::PathBuf;
 
 static APP_USER_AGENT: &str = concat!(env!("CARGO_PKG_NAME"), "/", env!("CARGO_PKG_VERSION"));
 
@@ -52,6 +54,7 @@ impl Display for Type {
     }
 }
 
+// Remote album art client (MusicBrainz + Cover Art Archive)
 pub struct AlbumArtClient {
     release_group_cache: HashMap<(String, String), (String, Type)>,
     client: Client,
@@ -172,5 +175,35 @@ impl AlbumArtClient {
         } else {
             None
         }
+    }
+}
+
+// Local album art client (extract from files and upload)
+pub struct LocalArtClient {
+    music_dir: Option<PathBuf>,
+    uploader: ImageUploader,
+}
+
+impl LocalArtClient {
+    pub fn new(music_dir: Option<&str>) -> Self {
+        Self {
+            music_dir: music_dir.map(PathBuf::from),
+            uploader: ImageUploader::new(),
+        }
+    }
+
+    pub async fn get_album_art_url(&self, song: Song) -> Option<String> {
+        // If music_dir is None, return None immediately
+        let music_dir = match &self.music_dir {
+            Some(dir) => dir,
+            None => return None,
+        };
+
+        let file_path = music_dir.join(&song.url);
+        if !file_path.exists() {
+            tracing::debug!("Local file does not exist: {}", file_path.display());
+            return None;
+        }
+        self.uploader.upload_local_file(&file_path).await
     }
 }

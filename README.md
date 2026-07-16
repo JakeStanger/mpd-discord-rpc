@@ -57,6 +57,8 @@ this will be at `~/.config/discord-rpc/config.toml`
 - **id** - The Discord application ID to run through.
 - **hosts** - An array of MPD server host socket addresses. Each one will be
   tried in order until a playing server is found.
+- **music_directory** - The full path to the MPD music directory. Defaults to 
+  the XDG music directory. Required for album art to work in local mode.
 - **format** - Format strings. Tokens are listed below.
   - **details** - A format string for the top line. This is the song title by
     default.
@@ -77,6 +79,9 @@ this will be at `~/.config/discord-rpc/config.toml`
     image. Setting this to `""` disables the hover.
   - **display_type** - The type of content to display in the status. Can be one
     of `name`, `state` or `details`. Defaults to `state`.
+  - **album_art** - Mode to use to obtain album art. Defaults to `prefer_remote`,
+    can be `none`, `local`, `remote` or `prefer_local`. See
+    [Album art](##album-art) for more details.
   - **button1_text** - The label of the first button that is shown in activity.
   - **button1_link** - The url of the first button.
   - **button2_text** - The label of the second button that is shown in activity.
@@ -108,6 +113,7 @@ included here for reference.
 ```toml
 id = 677226551607033903
 hosts = ["localhost:6600"]
+music_directory = "/home/user/Music"
 
 [format]
 details = "$title"
@@ -118,6 +124,7 @@ small_image = "notes"
 large_text = ""
 small_text = ""
 display_type = "state"
+album_art = "prefer_remote"
 button1_text = ""
 button1_link = ""
 button2_text = ""
@@ -126,9 +133,23 @@ button2_link = ""
 
 ## Album art
 
-Album art is pulled from the MusicBrainz database and Album Art Archive
-automatically. You'll only get a cover if it can be found though; there's a
-couple of things you can do to help this:
+There are 5 modes that can be used to provide album art:
+
+- **none** - album art functionality is disabled.
+- **local** - art from audio files is used.
+- **remote** - art provided by Album Art Archive using MusicBrainz database.
+- **prefer_local** - priority given to local art.
+- **prefer_remote** (default) - priority given to remote art.
+
+In `local` mode album art is being pulled directly from local audiofiles and
+sent to image uploader services to obtain public links. This does not work when
+files are missing images or when the uploader services are unavailable. For
+stability and balancing purposes multiple services are used (litterbox.catbox.moe,
+uguu.se and tmpfiles.org). Requires `music_directory` to be valid.
+
+In `remote` mode album art is pulled from the MusicBrainz database and Album
+Art Archive automatically. You'll only get a cover if it can be found though;
+there's a couple of things you can do to help this:
 
 - Make sure your music is sensibly tagged. In most cases MusicBrainz will be
   searched for releases matching the album/artist name.
@@ -136,3 +157,8 @@ couple of things you can do to help this:
   MPD and can be done automatically using MusicBrainz Picard.
 - Add missing album art to MusicBrainz. Many albums are missing covers, and you
   can upload your own to the database to contribute these for everyone.
+
+Generally it is recommended to use either `remote` or `prefer_remote` to lower
+resource usage and the amount of requests sent to the uploader services. The
+exclusive `local` mode should only be used if Album Art Archive or MusicBrainz
+are unavailable or cause problems. 
