@@ -99,6 +99,7 @@ from MPD:
 - `$genre`
 - `$duration`
 - `$elapsed`
+- `$file`
 
 ### Default Configuration
 
