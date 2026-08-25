@@ -785,6 +785,7 @@ dependencies = [
  "discord-presence",
  "mpd-utils",
  "mpd_client",
+ "percent-encoding",
  "regex",
  "reqwest",
  "serde",
@@ -792,6 +793,7 @@ dependencies = [
  "tracing",
  "tracing-subscriber",
  "universal-config",
+ "url",
 ]
 
 [[package]]
