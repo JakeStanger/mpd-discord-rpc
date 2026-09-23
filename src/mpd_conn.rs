@@ -28,6 +28,14 @@ pub fn get_token_value(song: &Song, status: &Status, token: &str) -> String {
         "originaldate" => try_get_first_tag(song.tags.get(&Tag::OriginalDate)),
         "duration" => return get_duration(status).map_or_else(|| String::from("N/A"), format_time),
         "elapsed" => return get_elapsed(status).map_or_else(|| String::from("N/A"), format_time),
+        "listenbrainz_url" => {
+            return if let Some(id) = try_get_first_tag(song.tags.get(&Tag::MusicBrainzRecordingId))
+            {
+                format!("https://listenbrainz.org/track/{id}")
+            } else {
+                String::new()
+            };
+        }
         _ => Some(token),
     }
     .unwrap_or("unknown")

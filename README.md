@@ -78,7 +78,9 @@ this will be at `~/.config/discord-rpc/config.toml`
   - **display_type** - The type of content to display in the status. Can be one
     of `name`, `state` or `details`. Defaults to `state`.
   - **button1_text** - The label of the first button that is shown in activity.
-  - **button1_link** - The url of the first button.
+    Defaults to `"ListenBrainz"`.
+  - **button1_link** - The url of the first button. Defaults to
+    `$listenbrainz_url`.
   - **button2_text** - The label of the second button that is shown in activity.
   - **button2_link** - The url of the second button.
 
@@ -99,6 +101,7 @@ from MPD:
 - `$genre`
 - `$duration`
 - `$elapsed`
+- `$listenbrainz_url` (empty if the current track has no MusicBrainz recording ID tag)
 
 ### Default Configuration
 
@@ -118,8 +121,8 @@ small_image = "notes"
 large_text = ""
 small_text = ""
 display_type = "state"
-button1_text = ""
-button1_link = ""
+button1_text = "ListenBrainz"
+button1_link = "$listenbrainz_url"
 button2_text = ""
 button2_link = ""
 ```
