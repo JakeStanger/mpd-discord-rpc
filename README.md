@@ -99,6 +99,29 @@ from MPD:
 - `$genre`
 - `$duration`
 - `$elapsed`
+- `$file`
+
+#### URL formatting options
+
+Tokens can be specified with an optional format: `${name:format}`.
+
+Supported formats:
+
+- `urlpath`  
+  Encodes the token for use in a URL path (preserves forward slashes).
+- `urlquery`  
+  Encodes the token for use as a single URL query parameter value.
+
+These are mainly useful in `button1_link` and `button2_link`.
+
+For example, with `$file` = `AC DC/Live #1?.flac`:
+
+- Path usage:
+  `button1_link = "https://example.com/music/${file:urlpath}"`  
+  becomes `https://example.com/music/AC%20DC/Live%20%231%3F.flac`
+- Query usage:
+  `button1_link = "https://example.com/search?name=${file:urlquery}"`  
+  becomes `https://example.com/search?name=AC+DC%2FLive+%231%3F.flac`
 
 ### Default Configuration
 

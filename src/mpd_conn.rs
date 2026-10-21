@@ -28,6 +28,7 @@ pub fn get_token_value(song: &Song, status: &Status, token: &str) -> String {
         "originaldate" => try_get_first_tag(song.tags.get(&Tag::OriginalDate)),
         "duration" => return get_duration(status).map_or_else(|| String::from("N/A"), format_time),
         "elapsed" => return get_elapsed(status).map_or_else(|| String::from("N/A"), format_time),
+        "file" => return song.url.clone(),
         _ => Some(token),
     }
     .unwrap_or("unknown")

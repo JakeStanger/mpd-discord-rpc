@@ -9,10 +9,12 @@ use mpd_client::client::Subsystem;
 use mpd_client::commands;
 use mpd_client::responses::{PlayState, Song, SongInQueue, Status};
 use mpd_utils::MultiHostClient;
+use percent_encoding::{AsciiSet, NON_ALPHANUMERIC, utf8_percent_encode};
 use regex::Regex;
 use tokio::sync::mpsc;
 use tokio::time::sleep;
 use tracing::{debug, error, info};
+use url::form_urlencoded::byte_serialize;
 
 use crate::album_art::AlbumArtClient;
 use crate::config::DisplayType as ConfigDisplayType;
@@ -33,22 +35,39 @@ fn map_display_type(display_type: ConfigDisplayType) -> DisplayType {
     }
 }
 
-struct Tokens {
-    details: Vec<String>,
-    state: Vec<String>,
-    large_text: Vec<String>,
-    small_text: Vec<String>,
-    button1_text: Vec<String>,
-    button1_link: Vec<String>,
-    button2_text: Vec<String>,
-    button2_link: Vec<String>,
+struct Token {
+    token_literal: String,
+    name: String,
+    format: Option<String>,
 }
+
+struct Tokens {
+    details: Vec<Token>,
+    state: Vec<Token>,
+    large_text: Vec<Token>,
+    small_text: Vec<Token>,
+    button1_text: Vec<Token>,
+    button1_link: Vec<Token>,
+    button2_text: Vec<Token>,
+    button2_link: Vec<Token>,
+}
+
+// Percent-encode set for ${token:urlpath} usage.
+//
+// This intentionally preserves "/" so callers can encode full paths, while
+// escaping reserved delimiter characters that should not appear in a URL path.
+const URLPATH_ENCODE_SET: &AsciiSet = &NON_ALPHANUMERIC
+    .remove(b'/')
+    .remove(b'-')
+    .remove(b'.')
+    .remove(b'_')
+    .remove(b'~');
 
 #[tokio::main]
 async fn main() {
     tracing_subscriber::fmt::init();
 
-    let re = Regex::new(r"\$(\w+)").expect("Failed to parse regex");
+    let re = Regex::new(r"\$(\w+)|\$\{(\w+):(\w+)\}").expect("Failed to parse regex");
 
     let config = Config::load();
     let format = &config.format;
@@ -317,9 +336,27 @@ impl<'a> Service<'a> {
 }
 
 /// Extracts the formatting tokens from a formatting string
-fn get_tokens(re: &Regex, format_string: &str) -> Vec<String> {
+fn get_tokens(re: &Regex, format_string: &str) -> Vec<Token> {
     re.captures_iter(format_string)
-        .map(|caps| caps[1].to_string())
+        .map(|caps| {
+            let raw_name = caps[0].to_string();
+
+            if let Some(token) = caps.get(1) {
+                Token {
+                    token_literal: raw_name,
+                    name: token.as_str().to_string(),
+                    format: None,
+                }
+            } else {
+                let token = caps[2].to_string();
+                let token_format = caps[3].to_string();
+                Token {
+                    token_literal: raw_name,
+                    name: token,
+                    format: Some(token_format),
+                }
+            }
+        })
         .collect::<Vec<_>>()
 }
 
@@ -327,16 +364,31 @@ fn get_tokens(re: &Regex, format_string: &str) -> Vec<String> {
 /// with actual data pulled from MPD
 fn replace_tokens(
     format_string: &str,
-    tokens: &Vec<String>,
+    tokens: &Vec<Token>,
     song: &Song,
     status: &Status,
 ) -> String {
     let mut compiled_string = format_string.to_string();
     for token in tokens {
-        let value = mpd_conn::get_token_value(song, status, token);
-        compiled_string = compiled_string.replace(format!("${token}").as_str(), value.as_str());
+        let value = mpd_conn::get_token_value(song, status, &token.name);
+        let value = match token.format.as_deref() {
+            Some("urlpath") => encode_url_path(&value),
+            Some("urlquery") => encode_url_query(&value),
+            None => value,
+            Some(_) => value,
+        };
+
+        compiled_string = compiled_string.replace(token.token_literal.as_str(), value.as_str());
     }
     compiled_string
+}
+
+fn encode_url_query(value: &str) -> String {
+    byte_serialize(value.as_bytes()).collect::<String>()
+}
+
+fn encode_url_path(value: &str) -> String {
+    utf8_percent_encode(value, URLPATH_ENCODE_SET).to_string()
 }
 
 /// Clamps a string to a specified length (byte count).
