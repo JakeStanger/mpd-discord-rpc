@@ -60,8 +60,8 @@ impl Default for Format {
             large_text: String::new(),
             small_text: String::new(),
             display_type: DisplayType::default(),
-            button1_text: String::new(),
-            button1_link: String::new(),
+            button1_text: "ListenBrainz".to_string(),
+            button1_link: "$listenbrainz_url".to_string(),
             button2_text: String::new(),
             button2_link: String::new(),
         }
