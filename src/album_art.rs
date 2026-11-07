@@ -1,8 +1,8 @@
 use crate::mpd_conn::try_get_first_tag;
 use mpd_client::responses::Song;
 use mpd_client::tag::Tag;
-use reqwest::Client;
 use reqwest::header::{HeaderMap, HeaderValue};
+use reqwest::{Client, Url};
 use serde::Deserialize;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
@@ -105,10 +105,14 @@ impl AlbumArtClient {
     /// Searches for a release on MusicBrainz
     /// Returns its ID if one is found.
     async fn find_release_group_id(&self, artist: &str, album: &str) -> Option<String> {
-        let query = format!("artist:{artist} AND release:{album}");
-        let url = format!("https://musicbrainz.org/ws/2/release-group/?query={query}&limit=1",);
+        let query = build_search_query(artist, album);
+        let url = Url::parse_with_params(
+            "https://musicbrainz.org/ws/2/release-group/",
+            &[("query", query.as_str()), ("limit", "1")],
+        )
+        .ok()?;
 
-        let response = self.client.get(&url).send().await;
+        let response = self.client.get(url).send().await;
 
         if let Ok(response) = response {
             if response.status() != 200 {
@@ -172,5 +176,61 @@ impl AlbumArtClient {
         } else {
             None
         }
+    }
+}
+
+/// Wraps a value in double quotes so that it is matched as a phrase
+/// by the MusicBrainz (Lucene) search syntax.
+///
+/// Without this, words such as `AND`, `OR` and `NOT` in a tag
+/// are interpreted as query operators, and characters such as `:`, `-` or `!`
+/// change the meaning of the query.
+fn quote_search_term(value: &str) -> String {
+    let escaped = value.replace('\\', "\\\\").replace('"', "\\\"");
+    format!("\"{escaped}\"")
+}
+
+fn build_search_query(artist: &str, album: &str) -> String {
+    format!(
+        "artist:{} AND release:{}",
+        quote_search_term(artist),
+        quote_search_term(album)
+    )
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn quotes_terms() {
+        assert_eq!(
+            build_search_query("Polyphia", "BE NOT AFRAID"),
+            r#"artist:"Polyphia" AND release:"BE NOT AFRAID""#
+        );
+    }
+
+    #[test]
+    fn escapes_quotes_and_backslashes() {
+        assert_eq!(quote_search_term(r#"a "b" \ c"#), r#""a \"b\" \\ c""#);
+    }
+
+    #[test]
+    fn url_encodes_query() {
+        let query = build_search_query("Simon & Garfunkel", "Bookends #1");
+        let url = Url::parse_with_params(
+            "https://musicbrainz.org/ws/2/release-group/",
+            &[("query", query.as_str()), ("limit", "1")],
+        )
+        .unwrap();
+
+        let params: Vec<(String, String)> = url.query_pairs().into_owned().collect();
+        assert_eq!(
+            params,
+            vec![
+                ("query".to_string(), query),
+                ("limit".to_string(), "1".to_string())
+            ]
+        );
     }
 }
