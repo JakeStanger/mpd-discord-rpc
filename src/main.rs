@@ -212,7 +212,7 @@ impl<'a> Service<'a> {
                     replace_tokens(&format.details, &self.tokens.details, &song, status),
                     MAX_BYTES,
                 );
-                let state = clamp(
+                let mut state = clamp(
                     replace_tokens(&format.state, &self.tokens.state, &song, status),
                     MAX_BYTES,
                 );
@@ -246,10 +246,13 @@ impl<'a> Service<'a> {
                     status,
                 );
 
-                // discord requires details to be at least two characters. So extend it with
+                // discord requires details and state to be at least two characters. So extend them with
                 // zero-width spaces if it's too short. https://en.wikipedia.org/wiki/Zero-width_space
                 while details.chars().count() < 2 {
                     details.push('\u{200B}');
+                }
+                while state.chars().count() < 2 {
+                    state.push('\u{200B}');
                 }
 
                 let timestamps = get_timestamp(status, format.timestamp);
